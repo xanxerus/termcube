@@ -1,10 +1,34 @@
-# cube
+# term-cube
 Not the best documented thing in the world I know. The name leaves much to be desired as well.
 
 This repo is for a project I did for a few days in my free time. 
 
-This project can simulate a cubic twistypuzzle with any given side length greater than 1 and also implements a cube
-timer in terminal.
+Term-cube can simulate a cubic twistypuzzle with any given side length greater than 1 and also implements a cube
+timer in terminal. It has a lot of the same functionality as PyCuber <https://github.com/adrianliaw/PyCuber>
+in that it can simulate a 3x3x3 and can reverse an algorithm. It lacks a solver and the ability to reflect an 
+algorithm, but has an interactive mode, a timer, and works with cubes of any side length > 1.
+
+##Demonstration
+```python
+>>> from cube import Cube
+>>> r = Cube(4)
+>>> r.interact()
+4x4x4 Cube
+```
+![alt tag](http://imgur.com/3NVC1c6)
+
+```
+R L f2 Bw2
+4x4x4 Cube
+```
+![alt tag](http://imgur.com/LcZ0cLY)
+
+```
+scramble
+2Uw R D 2Rw2 2Fw2 R F R' 2Fw2 R2 2Bw' U 2Rw D' L' 2Uw' 2Rw 2Dw2 2Fw2 2Rw 2Dw2 F 2Dw 2Lw' U2 L' 2Fw2 2Rw2 2Fw2 2Dw2 2Lw 2Dw B2 L2 U' 2Lw 2Uw2 2Fw 2Dw2 R2
+4x4x4 Cube
+```
+![alt tag](http://imgur.com/IWLjDhg)
 
 ##turn.py
 This module has two classes, Turn and TurnSequence. A Turn represents a single move that can be used to manipulate
