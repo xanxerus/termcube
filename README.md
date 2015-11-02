@@ -18,10 +18,10 @@ algorithm, but has an interactive mode, a timer, and works with cubes of any sid
 ![solved cube image](http://i.imgur.com/3NVC1c6.png)
 
 ```
-R L f2 Bw2
+R L f2 Uw2
 4x4x4 Cube
 ```
-![moved cube image](http://i.imgur.com/LcZ0cLY.png)
+![moved cube image](http://i.imgur.com/hboMCIf.png)
 
 ```
 scramble
