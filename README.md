@@ -15,20 +15,20 @@ algorithm, but has an interactive mode, a timer, and works with cubes of any sid
 >>> r.interact()
 4x4x4 Cube
 ```
-![alt tag](http://imgur.com/3NVC1c6)
+![solved cube image](http://i.imgur.com/3NVC1c6.png)
 
 ```
 R L f2 Bw2
 4x4x4 Cube
 ```
-![alt tag](http://imgur.com/LcZ0cLY)
+![moved cube image](http://i.imgur.com/LcZ0cLY.png)
 
 ```
 scramble
 2Uw R D 2Rw2 2Fw2 R F R' 2Fw2 R2 2Bw' U 2Rw D' L' 2Uw' 2Rw 2Dw2 2Fw2 2Rw 2Dw2 F 2Dw 2Lw' U2 L' 2Fw2 2Rw2 2Fw2 2Dw2 2Lw 2Dw B2 L2 U' 2Lw 2Uw2 2Fw 2Dw2 R2
 4x4x4 Cube
 ```
-![alt tag](http://imgur.com/IWLjDhg)
+![scrambled cube image](http://i.imgur.com/IWLjDhg.png)
 
 ##turn.py
 This module has two classes, Turn and TurnSequence. A Turn represents a single move that can be used to manipulate
