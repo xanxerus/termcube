@@ -5,7 +5,7 @@ from time import time
 from threading import Thread
 from cube import Cube
 
-def prompt_inspection(default = 15, prompt = 'Session inspection time (default 15s): '):
+def prompt_number(prompt = 'Enter a number: ', default = 15):
 	"""Print a given prompt string and return the user's input as a float.
 	If invalid or no input, return a given default.
 	"""
@@ -106,4 +106,6 @@ def avg_times(arr):
 	return sum(times)/l if l > 0 else 0, sum(times[1:-1])/(l-2) if l > 2 else 0
 
 if __name__=='__main__':
-	get_times(inspection_time=prompt_inspection())
+	i = prompt_number('Session inspection time (default 15s): ', 15.0)
+	x = int(prompt_number('Cube size (default 3): ', 3))
+	get_times(inspection_time=i, cube_size=x)
