@@ -86,7 +86,7 @@ def get_times(n = 0, cube_size = 3, inspection_time = 15):
 					del ret[q]
 				except:
 					print('Unable to remove solve %d' % q)
-				break
+				usr = input()
 		if usr=='end':
 			break
 		
