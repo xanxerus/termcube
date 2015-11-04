@@ -101,7 +101,7 @@ def avg_times(arr):
 	out DNFS. Also return the average removing best and worst after 
 	applying penalites and throwing out DNFS.
 	"""
-	print(arr)
+	#~ print(arr)
 	times = sorted([sum(a) for a in filter(lambda t : t[0] == 'DNF', arr)])
 	l = len(times)
 	return sum(times)/l if l > 0 else 0, sum(times[1:-1])/(l-2) if l > 2 else 0
