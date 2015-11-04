@@ -62,11 +62,10 @@ def get_times(n = 0, cube_size = 3, inspection_time = 15):
 	Return a list of all the times.
 	"""
 	ret = []
-	x = 0
 	r = Cube(cube_size)
 	
 	while n <= 0 or x <= n:
-		print('Solve %d - Current mean: %.2f  Current wca average: %.2f' % ((x+1,) + avg_times(ret)))
+		print('Solve %d - Current mean: %.2f  Current wca average: %.2f' % ((len(ret)+1,) + avg_times(ret)))
 		
 		r.reset()
 		r.apply("x")
@@ -79,22 +78,22 @@ def get_times(n = 0, cube_size = 3, inspection_time = 15):
 				break
 			elif usr.startswith('del'):
 				try:
-					q = int(usr.split()[1])
+					q = int(usr.split()[1])-1
 				except:
-					q = x-1
+					q = len(ret)-1
 				try:
 					print('Removing solve number %d: %.2f' % (q, ret[q][1]))
-					arr[q] = str(arr[q]) + ' - Removed'
+					del ret[q]
 				except:
-					print('Unable to delete solve number %d' % q)
-		
+					print('Unable to remove solve %d' % q)
+				break
 		if usr=='end':
 			break
 		
 		penalty = count_down(inspection_time)
 		time = count_up()
 		ret.append((penalty, time))
-		x+=1
+
 
 def avg_times(arr):
 	"""Return the average of all times, applying penalties and throwing
@@ -106,6 +105,8 @@ def avg_times(arr):
 	return sum(times)/l if l > 0 else 0, sum(times[1:-1])/(l-2) if l > 2 else 0
 
 if __name__=='__main__':
-	i = prompt_number('Session inspection time (default 15s): ', 15.0)
-	x = int(prompt_number('Cube size (default 3): ', 3))
-	get_times(inspection_time=i, cube_size=x)
+	while True:
+		i = prompt_number('Session inspection time (default 15s): ', 15.0)
+		x = int(prompt_number('Cube size (default 3): ', 3))
+		get_times(inspection_time=i, cube_size=x)
+
