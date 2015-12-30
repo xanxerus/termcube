@@ -1,4 +1,4 @@
-#!/usr/bin/pypy3
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 from turn import Turn, TurnSequence
@@ -319,6 +319,19 @@ def coolness(n = 3):
 			break
 	print('WOAH')
 
+def coolness2():
+	while True:
+		r = Cube(3)
+		r.scramble()
+		print(r)
+		#~ sleep(1)
+		for t in TurnSequence(r.two_phase_solution()[0]):
+			r.apply(t)
+			print(r)
+			sleep(.1)
+		#~ sleep(1)
+
 if __name__=="__main__":
-	r = Cube(3)
-	r.interact()
+	#~ r = Cube(3)
+	#~ r.interact()
+	coolness2()
