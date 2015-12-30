@@ -101,6 +101,8 @@ class TurnSequence(list):
 		"""
 		if isinstance(iterable, str):
 			super(TurnSequence, self).__init__([Turn(s) for s in iterable.split()])
+		elif isinstance(iterable, Turn):
+			super(TurnSequence, self).__init__([iterable])
 		elif iterable:
 			super(TurnSequence, self).__init__(iterable)
 		else:

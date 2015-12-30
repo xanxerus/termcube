@@ -51,3 +51,9 @@ Once stopped, it prints the average.
 ##web-usr.py
 This module puts random cubes on a webpage on localhost:8000 using visualcube 
 <http://cube.crider.co.uk/visualcube.php>
+
+##solve.py
+This module has one real function which solves a cube from a given sticker string using muodov's implementation of kociemba's two phase algorithm. Description of the cube string and source for muodov's python port of two-phase can be found at <https://github.com/muodov/kociemba>.
+
+##scramble.py
+This module is adapted from muodov's solve.py. It gives random describing random cubes to the solver until one is actually solvable, then returns the inverse of the solution. If anyone would like to explain to me how to make the cube solvable with greater frequency I would be very happy to know.

@@ -1,12 +1,17 @@
-#!/usr/bin/python3 -i
+#!/usr/bin/pypy3
 # -*- coding: utf-8 -*-
 
 from turn import Turn, TurnSequence
+from time import time, sleep
+import solve
+import scramble
+#~ from solve import _solve
 
 help_text = '''Cube interactive mode
 Manipulate a virtual cube
 Available commands:
 -reset		- Reset the cube to a solved position
+-solve		- Display a two-phase solution
 -sexy		- Apply the sexy move (R U R' U')
 -scramble	- Print a random Turn Sequence and apply it
 -solved?	- Print if the cube is solved
@@ -60,11 +65,15 @@ class Cube:
 					  'L' : [['L']*self.x for q in range(self.x)],
 					  'B' : [['B']*self.x for q in range(self.x)]}
 	
-	def scramble(self):
+	def scramble(self, random_state=True):
 		"""Generate, apply, and return a scramble."""
-		s = TurnSequence.get_scramble(self.x)
+		s = self.get_scramble(random_state)
 		self.apply(s)
 		return s
+	
+	def get_scramble(self, random_state=True):
+		"""Generate, apply, and return a scramble."""
+		return scramble.scramble() if random_state and self.x == 3 else TurnSequence.get_scramble(self.x)
 	
 	def apply(self, seq):
 		"""Apply a given TurnSequence to this Cube. If a str was given,
@@ -193,38 +202,27 @@ class Cube:
 		
 		return ret
 	
+	def kociemba_str(self):
+		"""Return this cube in kociemba-friendly sticker format."""
+		ret  = ''.join(''.join(arr) for arr in self.faces['U'])
+		ret += ''.join(''.join(arr) for arr in self.faces['R'])
+		ret += ''.join(''.join(arr) for arr in self.faces['F'])
+		ret += ''.join(''.join(arr) for arr in self.faces['D'])
+		ret += ''.join(''.join(arr) for arr in self.faces['L'])
+		ret += ''.join(''.join(arr) for arr in rotate_2(self.faces['B']))
+		return ret
+	
+	def two_phase_solution(self):
+		return solve.solve(self.kociemba_str())
+	
 	def __repr__(self):
 		"""Return the type of cube and an ANSI color representation."""
 		return str(self)
 	
-	def interact(self):
-		"""Read, evaluate, print, and loop commands. See help text."""
-		while True:
-			print(self)
-			print()
-			usr = input()
-			if usr == 'reset':
-				self.reset()
-			elif usr == 'sexy':
-				self.apply("R U R' U'")
-			elif usr == 'scramble':
-				print(self.scramble())
-			elif usr == 'exit':
-				break
-			elif usr == 'help':
-				print(help_text)
-			elif usr == 'solved?':
-				print(self.is_solved())
-			else:
-				#~ try:
-					self.apply(TurnSequence(usr))
-				#~ except:
-					#~ print("Move failed")
-	
 	def is_solved(self):
 		"""Return true if all faces are a solid color."""
-		w = self.faces[f][0][0]
 		for f in Turn.faces:
+			w = self.faces[f][0][0]
 			for r in self.faces[f]:
 				if not all(map(lambda arg: arg == w, r)):
 					return False
@@ -275,6 +273,38 @@ class Cube:
 			ret += '\n'
 		
 		return ret
+	
+	def interact(self):
+		"""Read, evaluate, print, and loop commands. See help text."""
+		while True:
+			print(self)
+			print()
+			usr = input()
+			if usr == 'reset':
+				self.reset()
+			elif usr == 'solve':
+				q = self.two_phase_solution()
+				print(q[0])
+				print('Solve time: %.2f seconds' % q[1])
+				print('Apply this solution?')
+				if input().startswith('y'):
+					for t in TurnSequence(q[0]):
+						self.apply(t)
+						print(self)
+						sleep(.1)
+						
+			elif usr == 'sexy':
+				self.apply("R U R' U'")
+			elif usr == 'scramble':
+				print(self.scramble())
+			elif usr == 'solved?':
+				print(self.is_solved())
+			elif usr == 'exit':
+				break
+			elif usr == 'help':
+				print(help_text)
+			else:
+				self.apply(TurnSequence(usr))
 
 def coolness(n = 3):
 	from time import sleep
@@ -289,15 +319,6 @@ def coolness(n = 3):
 			break
 	print('WOAH')
 
-def main():
+if __name__=="__main__":
 	r = Cube(3)
 	r.interact()
-
-
-if __name__=="__main__":
-	main()
-	#~ r = Cube(3)
-	#~ r.scramble()
-	#~ print(r)
-	#~ print(r.visual_test())
-	#~ print(r.visualize())
