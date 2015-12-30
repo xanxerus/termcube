@@ -127,7 +127,7 @@ class Search(object):
                             self.ax[n] += 1
                             if self.ax[n] > 5:
 
-                                if time.time() - tStart > timeOut:
+                                if timeOut > 0 and time.time() - tStart > timeOut:
                                     return "Error 8"
 
                                 if n == 0:

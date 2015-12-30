@@ -211,7 +211,7 @@ def _attemptScramble(maxDepth = 24, timeOut = 1000, useSeparator = False):
 						ax[n] += 1
 						if ax[n] > 5:
 
-							if time.time() - tStart > timeOut:
+							if timeOut > 0 and time.time() - tStart > timeOut:
 								return "Error 8"
 
 							if n == 0:

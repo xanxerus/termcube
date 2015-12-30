@@ -3,8 +3,10 @@
 
 from turn import Turn, TurnSequence
 from time import time, sleep
+from sys import stderr
 import solve
 import scramble
+
 #~ from solve import _solve
 
 help_text = '''Cube interactive mode
@@ -12,6 +14,7 @@ Manipulate a virtual cube
 Available commands:
 -reset		- Reset the cube to a solved position
 -solve		- Display a two-phase solution
+-optimal	- Display the optimal solution (will take a long time)
 -sexy		- Apply the sexy move (R U R' U')
 -scramble	- Print a random Turn Sequence and apply it
 -solved?	- Print if the cube is solved
@@ -213,7 +216,18 @@ class Cube:
 		return ret
 	
 	def two_phase_solution(self):
+		try:
+			assert self.x == 3
+		except:
+			print('Cube must be a 3x3x3 to find a two phase solution', file=stderr)
 		return solve.solve(self.kociemba_str())
+	
+	def optimal_solution(self, verbose = False):
+		try:
+			assert self.x == 3
+		except:
+			print('Cube must be a 3x3x3 to find a two phase solution', file=stderr)
+		return solve.solve_optimal_from_bottom(self.kociemba_str(), verbose)
 	
 	def __repr__(self):
 		"""Return the type of cube and an ANSI color representation."""
@@ -292,6 +306,16 @@ class Cube:
 						self.apply(t)
 						print(self)
 						sleep(.1)
+			elif usr == 'optimal':
+				q = self.optimal_solution(verbose = True)
+				print(q[0])
+				print('Solve time: %.2f seconds' % q[1])
+				print('Apply this solution?')
+				if input().startswith('y'):
+					for t in TurnSequence(q[0]):
+						self.apply(t)
+						print(self)
+						sleep(.1)
 						
 			elif usr == 'sexy':
 				self.apply("R U R' U'")
@@ -332,6 +356,5 @@ def coolness2():
 		#~ sleep(1)
 
 if __name__=="__main__":
-	#~ r = Cube(3)
-	#~ r.interact()
-	coolness2()
+	Cube(3).interact()
+	#~ coolness2()
