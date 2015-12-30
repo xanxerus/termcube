@@ -5,7 +5,7 @@ from turn import Turn, TurnSequence
 from time import time, sleep
 from sys import stderr
 from threading import Thread
-from scramble import scramble
+import scramble
 from queue import Queue
 import solve
 
@@ -77,8 +77,8 @@ class Cube:
 		return s
 	
 	def get_scramble(self, random_state=True):
-		"""Generate, apply, and return a scramble."""
-		return scramble() if random_state and self.x == 3 else TurnSequence.get_scramble(self.x)
+		"""Generate and return a scramble without applying."""
+		return scramble.scramble() if random_state and self.x == 3 else TurnSequence.get_scramble(self.x)
 	
 	def apply(self, seq):
 		"""Apply a given TurnSequence to this Cube. If a str was given,
@@ -218,6 +218,7 @@ class Cube:
 		return ret
 	
 	def two_phase_solution(self):
+		"""Find a solution using Kociemba's two phase algoithm."""
 		try:
 			assert self.x == 3
 		except:
@@ -225,18 +226,21 @@ class Cube:
 		return solve.solve(self.kociemba_str())
 	
 	def optimal_solution(self, verbose = False):
+		"""Attempt to find an optimal solution using two-phase. Slow"""
 		try:
 			assert self.x == 3
 		except:
 			print('Cube must be a 3x3x3 to find a two phase solution', file=stderr)
 		return solve.solve_optimal_from_bottom(self.kociemba_str(), verbose)
 	
-	def enqueue_scramble(self, q, capacity = 10):
+	def enqueue_scramble(self, scramble_queue, capacity = 10):
+		"""Fill a given Queue with scramble until it is either full or a given capacity has been reached"""
 		while True:
-			if not q.full() and (q.qsize() < capacity or capacity <= 0):
-				q.put(self.get_scramble())
+			if not scramble_queue.full() and (scramble_queue.qsize() < capacity or capacity <= 0):
+				scramble_queue.put(self.get_scramble())
 	
 	def threaded_scramble(self, scramble_queue, capacity = 10):
+		"""Create and start a thread that fills a given queue with scrambles."""
 		t = Thread(target=self.enqueue_scramble, args=(scramble_queue,capacity))
 		t.start()
 		return t
@@ -267,38 +271,6 @@ class Cube:
 				facelet_colors += Cube.color[c]
 		
 		return 'http://cube.crider.co.uk/visualcube.php?fmt=gif&pzl=%s&fc=%s' % (self.x, facelet_colors)
-		
-	def visual_test(self):
-		"""Return the type of cube and a letter/color representation."""
-		ret = '{0}x{0}x{0} Cube'.format(self.x) + '\n'
-		for r in self.faces['U']:
-			ret += ' '*self.x
-			for c in r:
-				ret += Cube.color[c]
-			ret += '\n'
-		
-		for r in range(self.x):
-			for c in self.faces['L'][r]:
-				ret += Cube.color[c]
-			for c in range(self.x):
-				ret += Cube.color[self.faces['F'][r][c]]
-			for c in self.faces['R'][r]:
-				ret += Cube.color[c]
-			ret += '\n'
-		
-		for r in self.faces['D']:
-			ret += ' '*self.x
-			for c in r:
-				ret += Cube.color[c]
-			ret += '\n'
-		
-		for r in self.faces['B']:
-			ret += ' '*self.x
-			for c in r:
-				ret += Cube.color[c]
-			ret += '\n'
-		
-		return ret
 	
 	def interact(self):
 		"""Read, evaluate, print, and loop commands. See help text."""
