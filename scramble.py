@@ -3,6 +3,7 @@ import time
 from pykociemba.coordcube import CoordCube, getPruning
 from random import randrange
 from turn import TurnSequence 
+from threading import Thread
 
 ax_to_s = ["U", "R", "F", "D", "L", "B"]
 po_to_s = [None, " ", "2 ", "' "]

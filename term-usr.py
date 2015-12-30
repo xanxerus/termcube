@@ -75,11 +75,6 @@ def count_up():
 	print('%-10s' % '\r')
 	return ret
 
-def threaded_scramble(cube, scramble):
-	def hjaelp():
-		scramble[0] = cube.scramble()
-	Thread(target=hjaelp).start()
-
 def get_times(n = 0, cube_size = 3, inspection_time = 15, using_tags = True):
 	"""Provide a scramble, inspect for a given time, then count up until
 	stopped. Loop n times or until stopped by typing "end".
@@ -98,7 +93,7 @@ def get_times(n = 0, cube_size = 3, inspection_time = 15, using_tags = True):
 		cube.apply(this_scramble)
 		print(this_scramble)
 		print(cube, end='')
-		threaded_scramble(cube, next_scramble)
+		cube.threaded_scramble(next_scramble)
 		
 		usr = input()
 		while usr:

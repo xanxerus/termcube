@@ -4,8 +4,10 @@
 from turn import Turn, TurnSequence
 from time import time, sleep
 from sys import stderr
+from threading import Thread
+from scramble import scramble
+from queue import Queue
 import solve
-import scramble
 
 #~ from solve import _solve
 
@@ -76,7 +78,7 @@ class Cube:
 	
 	def get_scramble(self, random_state=True):
 		"""Generate, apply, and return a scramble."""
-		return scramble.scramble() if random_state and self.x == 3 else TurnSequence.get_scramble(self.x)
+		return scramble() if random_state and self.x == 3 else TurnSequence.get_scramble(self.x)
 	
 	def apply(self, seq):
 		"""Apply a given TurnSequence to this Cube. If a str was given,
@@ -229,6 +231,16 @@ class Cube:
 			print('Cube must be a 3x3x3 to find a two phase solution', file=stderr)
 		return solve.solve_optimal_from_bottom(self.kociemba_str(), verbose)
 	
+	def enqueue_scramble(self, q, capacity = 10):
+		while True:
+			if not q.full() and (q.qsize() < capacity or capacity <= 0):
+				q.put(self.get_scramble())
+	
+	def threaded_scramble(self, scramble_queue, capacity = 10):
+		t = Thread(target=self.enqueue_scramble, args=(scramble_queue,capacity))
+		t.start()
+		return t
+	
 	def __repr__(self):
 		"""Return the type of cube and an ANSI color representation."""
 		return str(self)
@@ -330,7 +342,7 @@ class Cube:
 			else:
 				self.apply(TurnSequence(usr))
 
-def coolness(n = 3):
+def demo_random_turns(n = 3):
 	from time import sleep
 	r = Cube(n)
 	while True:
@@ -343,18 +355,21 @@ def coolness(n = 3):
 			break
 	print('WOAH')
 
-def coolness2():
+def demo_kociemba():
+	print('Initializing...')
+	r = Cube(3)
+	scramble_queue = Queue(maxsize = 10)
+	r.threaded_scramble(scramble_queue)
 	while True:
-		r = Cube(3)
-		r.scramble()
+		r.apply(scramble_queue.get())
 		print(r)
-		#~ sleep(1)
 		for t in TurnSequence(r.two_phase_solution()[0]):
 			r.apply(t)
 			print(r)
 			sleep(.1)
-		#~ sleep(1)
+		sleep(1)
 
 if __name__=="__main__":
-	Cube(3).interact()
-	#~ coolness2()
+	#~ Cube(3).interact()
+	demo_kociemba()
+	
