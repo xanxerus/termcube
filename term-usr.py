@@ -181,7 +181,7 @@ if __name__=='__main__':
 	while True:
 		i = prompt_number('Session inspection time (default 15s): ', 15.0)
 		x = int(prompt_number('Cube size (default 3): ', 3))
-		print('Use tags? ', end='')
+		print('Use tags? (default yes): ', end='')
 		t = not input().startswith('n')
 		print('Initializing...')
 		get_times(inspection_time=i, cube_size=x, using_tags=t)
