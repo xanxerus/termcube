@@ -1,29 +1,39 @@
 #!/usr/bin/python3
 import time
 from pykociemba.coordcube import CoordCube, getPruning
+from pykociemba.cubiecube import CubieCube
 from random import randrange
 from turn import TurnSequence 
 from threading import Thread
-
+from random import randrange, shuffle
 ax_to_s = ["U", "R", "F", "D", "L", "B"]
 po_to_s = [None, " ", "2 ", "' "]
 
 def scramble(maxDepth = 24, timeOut = 1000, useSeparator = False):
-	while True:
-		try:
-			return TurnSequence(_attemptScramble()).inverse()
-		except:
-			pass
+	return TurnSequence(_attemptScramble()).inverse()
 
 def _attemptScramble(maxDepth = 24, timeOut = 1000, useSeparator = False):
-	# +++++++++++++++++++++++ initialization +++++++++++++++++++++++++++++++++
-	flip            = [randrange(2048)] + [0] * 30  # phase1 coordinates
-	twist           = [randrange(2187)] + [0] * 30
-	parity          = [randrange(2)] + [0] * 30  # phase2 coordinates
-	URFtoDLF        = [randrange(20160)] + [0] * 30
-	FRtoBR          = [randrange(11880)] + [0] * 30
-	URtoUL          = [randrange(1320)] + [0] * 30
-	UBtoDF          = [randrange(1320)] + [0] * 30
+	cp = list(range(8))
+	shuffle(cp)
+	co = [randrange(3) for i in range(7)]
+	co.append((3 - sum(co) % 3) % 3)
+
+	ep = list(range(12))
+	shuffle(ep)
+	eo = [randrange(2) for i in range(11)]
+	eo.append(1 - (sum(eo) & 1))
+	
+	c = CubieCube(cp=cp, co=co, ep=ep, eo=eo)
+	if c.edgeParity() != c.cornerParity():
+		c.ep[-1], c.ep[-2] = c.ep[-2], c.ep[-1]
+
+	flip            = [c.getFlip()] + [0] * 30  # phase1 coordinates
+	twist           = [c.getTwist()] + [0] * 30
+	parity          = [c.cornerParity()] + [0] * 30  # phase2 coordinates
+	URFtoDLF        = [c.getURFtoDLF()] + [0] * 30
+	FRtoBR          = [c.getFRtoBR()] + [0] * 30
+	URtoUL          = [c.getURtoUL()] + [0] * 30
+	UBtoDF          = [c.getUBtoDF()] + [0] * 30
 	slice           = [FRtoBR[0] // 24] + [0] * 30
 
 	ax              = [0] * 31  # The axis of the move
@@ -36,7 +46,6 @@ def _attemptScramble(maxDepth = 24, timeOut = 1000, useSeparator = False):
 	n = 0
 	busy = False
 	depthPhase1 = 1
-
 	tStart = time.time()
 	
 	#~ print("twist %d flip %d parity %d FRtoBR %d URFtoDLF %d URtoUL %d UBtoDF %d" %\
@@ -86,10 +95,6 @@ def _attemptScramble(maxDepth = 24, timeOut = 1000, useSeparator = False):
 			URtoUL[i + 1] = CoordCube.URtoUL_Move[URtoUL[i]][mv]
 			UBtoDF[i + 1] = CoordCube.UBtoDF_Move[UBtoDF[i]][mv]
 		
-		#~ print(depthPhase1)
-		#~ print(URtoUL)
-		#~ print(len(CoordCube.MergeURtoULandUBtoDF))
-		#~ print(URtoUL[depthPhase1])
 		URtoDF[depthPhase1] = CoordCube.MergeURtoULandUBtoDF[URtoUL[depthPhase1]][UBtoDF[depthPhase1]]
 
 		d2 = getPruning(
@@ -278,16 +283,7 @@ def scrambleTime():
 		t = time()
 		scramble()
 		q.append(time()-t)
-		print(mean(q))
-
-def scrambleTest():
-	for trial in range(200):
-		try:
-			print(' '*10, end='')
-			_attemptScramble()
-			print('\rSuccess')
-		except:
-			print('\rFail')
+		print(q[-1])
 
 if __name__=='__main__':
 	scrambleTime()
