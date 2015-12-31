@@ -90,11 +90,10 @@ def stats(arr):
 	return sum(e.totaltime() for e in arr)/len(arr), dic
 
 def export_times(filename, ret):
-	p = ''
 	total, d = stats(ret)
-	p += ('%-10s %.2f' % ('All', total)) + '\n'
-	for k in d:
-		p += ('%-10s %.2f' % (k, d[k])) + '\n'
+	p = 'Average of %d: %.2f\n' % (len(ret), total)
+	p += '\n'.join('%-10s %.2f' % (k, d[k]) for k in d)
+	p += '\n'*4
 	p += ('\n'.join(('Time: %.2f\t Tags: %s\t Scramble: %s' % (s.totaltime(), s.tags, s.scramble)) for s in ret))
 	with open(filename, 'w' if isfile(filename) else 'a') as o:
 		o.write(p)
@@ -177,12 +176,17 @@ if __name__=='__main__':
 		using_random_state = not input().startswith('n')
 		
 	#Main application
-	get_times(cube_size=cube_size, inspection_time=inspection_time, using_tags=using_tags, using_random_state = using_random_state)
+	solves, times = get_times(cube_size=cube_size, inspection_time=inspection_time, using_tags=using_tags, using_random_state = using_random_state)
 
 	#Exit
-	print("Session has ended.")
-	print("Statistics: ")
-	total, d = stats(ret)
-	print('%-10s %.2f' % ('All', total))
-	for k in d:
-		print('%-10s %.2f' % (k, d[k]))
+	total, d = stats(times)
+	print("Session has ended. Statistics:")
+	statstring = 'Average of %d: %.2f\n' % (solves, total)
+	statstring += '\n'.join('%-10s %.2f' % (k, d[k]) for k in d)
+	print(statstring)
+	print('Export your times to a file?')
+	if input().startswith('y'):
+		print('Name of file to export to: ', end='')
+		filename = input()
+		export_times(filename, times)
+		print("Export successful") 
