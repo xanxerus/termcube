@@ -70,15 +70,20 @@ class Cube:
 					  'L' : [['L']*self.x for q in range(self.x)],
 					  'B' : [['B']*self.x for q in range(self.x)]}
 	
-	def scramble(self, random_state=True):
+	def scramble(self, random_state=True, moves=-1):
 		"""Generate, apply, and return a scramble."""
-		s = self.get_scramble(random_state)
+		s = self.get_scramble(random_state, moves)
 		self.apply(s)
 		return s
 	
-	def get_scramble(self, random_state=True):
+	def get_scramble(self, random_state=True, moves=-1):
 		"""Generate and return a scramble without applying."""
-		return scramble.scramble() if random_state and self.x == 3 else TurnSequence.get_scramble(self.x)
+		if random_state and self.x == 3:
+			return scramble.scramble()
+		elif moves > 1:
+			return TurnSequence.get_scramble(self.x, moves)
+		else:
+			return TurnSequence.get_scramble(self.x)
 	
 	def apply(self, seq):
 		"""Apply a given TurnSequence to this Cube. If a str was given,
@@ -305,10 +310,11 @@ class Cube:
 				self.apply(TurnSequence(usr))
 
 class ScrambleGenerator():
-	def __init__(self, x = 3, capacity = 10, random_state = True):
+	def __init__(self, x = 3, capacity = 10, random_state = True, moves = -1):
 		self.cube = Cube(x)
 		self.queue = Queue(max((capacity, 0)))
 		self.random_state = random_state
+		self.moves = moves
 		self.thread = Thread(target=self.enqueue_scramble)
 		self.stopped = False
 		self.thread.start()
@@ -317,7 +323,7 @@ class ScrambleGenerator():
 		"""Fill a given Queue with scramble until it is either full or a given capacity has been reached"""
 		while not self.stopped:
 			if not self.queue.full():
-				self.queue.put(self.cube.get_scramble(self.random_state))
+				self.queue.put(self.cube.get_scramble(self.random_state, self.moves))
 
 	def __next__(self):
 		"""Remove and return the next scramble in the queue"""

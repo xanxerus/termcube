@@ -121,12 +121,9 @@ class TurnSequence(list):
 		return map(''.join(self).replace('\'', '%27'))
 	
 	@staticmethod
-	def get_scramble(x = 3, moves = None):
-		"""Return a sequence of random turns whose depths are less than or
-		equal to the given cube dimension.
-		
-		If a number of moves is specified, return that number of moves,
-		else base it on the cube dimension as follows:
+	def default_moves(x):
+		"""Return the default number of moves in a scramble for a cube
+		with a given dimension
 		Depth	Moves
 		1-		0
 		2		11
@@ -137,13 +134,23 @@ class TurnSequence(list):
 		7		100
 		8+		120
 		"""
+		if x <= 1:
+			return 0
+		elif x <= 7:
+			return {2:11, 3:25, 4:40, 5:60, 6:80, 7:100}[x]
+		else:
+			return 120
+	
+	@staticmethod
+	def get_scramble(x = 3, moves = None):
+		"""Return a sequence of random turns whose depths are less than or
+		equal to the given cube dimension.
+		
+		If a number of moves is specified, return that number of moves,
+		otherwise, use the value returned by default_moves
+		"""
 		if moves == None:
-			if x <= 1:
-				moves = 0
-			elif x <= 7:
-				moves = {2:11, 3:25, 4:40, 5:60, 6:80, 7:100}[x]
-			else:
-				moves = 120
+			moves = TurnSequence.default_moves(x)
 		
 		ret = TurnSequence()
 		

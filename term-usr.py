@@ -1,19 +1,37 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
+help_text = \
+"""
+term-cube timer
+by Oddlespuddle
+
+After scrambles, type a command or just press enter to start inspection.
+Once inspected, press enter again to start the solve. Hurry! Penalties apply.
+Once solving, press enter again to end the solve.
+If tags are enabled, enter your tags separated by space (not commas) or
+type "del" to delete that solve.
+Repeat.
+
+Available commands:
+end         End this timer session (you will be able to export after)
+stat        Display this session's statistics so far
+export      Export your times to a file
+del         Delete a solve
+help        Display this help text
+"""
+
 from time import time
 from threading import Thread
 from cube import Cube, ScrambleGenerator
+from turn import TurnSequence
 from collections import namedtuple
 from os.path import isfile
 from queue import Queue
 
 class Solve(namedtuple('Solve', ['time', 'penalty', 'tags', 'scramble'])):
 	def totaltime(self):
-		if self.penalty == 'DNF':
-			return None
-		else:
-			return self.time + self.penalty
+		return self.time + self.penalty
 
 def mean(arr):
 	return sum(arr)/len(arr)
@@ -98,21 +116,12 @@ def export_times(filename, ret):
 	with open(filename, 'w' if isfile(filename) else 'a') as o:
 		o.write(p)
 
-def avg_times(arr):
-	"""Return the average of all times, applying penalties and throwing
-	out DNFS. Also return the average removing best and worst after 
-	applying penalites and throwing out DNFS.
-	"""
-	times = sorted([sum(a) for a in filter(lambda t : t[0] != 'DNF', arr)])
-	l = len(times)
-	return sum(times)/l if l > 0 else 0, sum(times[1:-1])/(l-2) if l > 2 else 0
-
-def get_times(n=0, cube_size=3, inspection_time=15, using_tags=True, using_random_state=True):
+def get_times(n=0, cube_size=3, inspection_time=15, using_tags=True, using_random_state=True, scramble_length=-1):
 	print('Initializing...')
 	ret = []
 	cube = Cube(cube_size)
 	solve_number = 1
-	with ScrambleGenerator(x=cube_size, random_state=using_random_state) as scrambler:
+	with ScrambleGenerator(x=cube_size, random_state=using_random_state, moves=scramble_length) as scrambler:
 		while n <= 0 or solve_number <= n:
 			cube.reset()
 			cube.apply('x')
@@ -145,11 +154,17 @@ def get_times(n=0, cube_size=3, inspection_time=15, using_tags=True, using_rando
 						print('Removed solve number %d: %.2f' % (delete_index, t))
 					except:
 						print('Unable to remove solve %d' % delete_index)
+				else:
+					print(help_text)
 				usr = input()
 			
 			penalty = count_down(inspection_time)
 			time = count_up()
 			tags = ''
+			
+			if penalty == 'DNF':
+				print('DNF times are not saved')
+				continue
 			
 			while using_tags and not tags:
 				print("Type your tag(s) or 'del' to forget this solve: ", end='')
@@ -160,23 +175,33 @@ def get_times(n=0, cube_size=3, inspection_time=15, using_tags=True, using_rando
 					continue
 			else:
 				solve_number += 1
-				ret.append(Solve(time, penalty, tags, scramble))
+				ret.append(Solve(time, penalty, tags if using_tags else 'Untagged', scramble))
 				print()
 	return solve_number-1, ret 
 
 if __name__=='__main__':
 	#Prompt session info
-	inspection_time = prompt_number('Session inspection time (default 15s): ', 15.0)
+	print(help_text)
+	inspection_time = prompt_number('Seconds of inspection time (default 15): ', 15.0)
 	cube_size = int(prompt_number('Cube size (default 3): ', 3))
 	print('Use tags? (default yes): ', end='')
 	using_tags = not input().startswith('n')
-	using_random_state = True
+	
+	using_random_state = False
 	if cube_size == 3:
 		print('Use random state scrambles? This may lag on your computer. (default yes): ', end='')
 		using_random_state = not input().startswith('n')
+	
+	scramble_length = -1
+	if not using_random_state:
+		scramble_length = prompt_number(prompt=('How long should scrambles be? (default %d): ' % TurnSequence.default_moves(cube_size)), default=-1)
 		
 	#Main application
-	solves, times = get_times(cube_size=cube_size, inspection_time=inspection_time, using_tags=using_tags, using_random_state = using_random_state)
+	solves, times = get_times(cube_size=cube_size, 
+							  inspection_time=inspection_time, 
+							  using_tags=using_tags, 
+							  using_random_state = using_random_state, 
+							  scramble_length=scramble_length)
 
 	#Exit
 	total, d = stats(times)
