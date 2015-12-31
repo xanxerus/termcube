@@ -108,12 +108,12 @@ def avg_times(arr):
 	l = len(times)
 	return sum(times)/l if l > 0 else 0, sum(times[1:-1])/(l-2) if l > 2 else 0
 
-def get_times(n=0, cube_size=3, inspection_time=15, using_tags=True):
+def get_times(n=0, cube_size=3, inspection_time=15, using_tags=True, using_random_state=True):
 	print('Initializing...')
 	ret = []
 	cube = Cube(cube_size)
 	solve_number = 1
-	with ScrambleGenerator(cube_size) as scrambler:
+	with ScrambleGenerator(x=cube_size, random_state=using_random_state) as scrambler:
 		while n <= 0 or solve_number <= n:
 			cube.reset()
 			cube.apply('x')
@@ -171,9 +171,13 @@ if __name__=='__main__':
 	cube_size = int(prompt_number('Cube size (default 3): ', 3))
 	print('Use tags? (default yes): ', end='')
 	using_tags = not input().startswith('n')
-	
+	using_random_state = True
+	if cube_size == 3:
+		print('Use random state scrambles? This may lag on your computer. (default yes): ', end='')
+		using_random_state = not input().startswith('n')
+		
 	#Main application
-	get_times(cube_size=cube_size, inspection_time=inspection_time, using_tags=using_tags)
+	get_times(cube_size=cube_size, inspection_time=inspection_time, using_tags=using_tags, using_random_state = using_random_state)
 
 	#Exit
 	print("Session has ended.")

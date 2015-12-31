@@ -1,5 +1,8 @@
+##2015-12-30
+Added threaded scrambling to lessen the wait time for scrambles.
+
 ##2015-12-29 
-Added random state scrambling and two phase solving with lots of help from the source from muovod's kociemba repo <https://github.com/muodov/kociemba>
+Added random state scrambling and two phase solving with lots of help from the source from muodov's kociemba repo <https://github.com/muodov/kociemba>
 
 This required a change to GNU v2 license.
 

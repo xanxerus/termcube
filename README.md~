@@ -5,12 +5,8 @@ This repo is for a project I did for a few days in my free time.
 
 Term-cube can simulate a cubic twistypuzzle with any given side length greater than 1 and also implements a cube
 timer in terminal. It has a lot of the same functionality as PyCuber <https://github.com/adrianliaw/PyCuber>
-in that it can simulate a 3x3x3 and can reverse an algorithm. It lacks the ability to reflect an 
-algorithm, but has a two-phase solver (thanks to muodov's pyhton port), an interactive mode, a timer, and works 
-with cubes of any side length > 1. 
-
-It also supports random-state scrambles for the 3x3x3 and uses them by default. Each scramble takes longer
-than is desirable at the moment. I suggest either using pypy3 or disabling random state entirely.
+in that it can simulate a 3x3x3 and can reverse an algorithm. It lacks a solver and the ability to reflect an 
+algorithm, but has an interactive mode, a timer, and works with cubes of any side length > 1.
 
 ##Demonstration
 ```python
