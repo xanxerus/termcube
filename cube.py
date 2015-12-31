@@ -86,6 +86,7 @@ class Cube:
 		"""
 		for turn in TurnSequence(seq):
 			self.apply_turn(turn)
+		return self
 	
 	def apply_turn(self, turn):
 		"""Apply a given Turn to this Cube. Does not convert strs."""
@@ -170,6 +171,7 @@ class Cube:
 							self.faces['F'][q][self.x-g],
 							self.faces['D'][q][self.x-g],
 							self.faces['B'][q][self.x-g])
+		return self
 	
 	def __eq__(self, other):
 		"""Return true if all stickers match."""
@@ -232,18 +234,6 @@ class Cube:
 		except:
 			print('Cube must be a 3x3x3 to find a two phase solution', file=stderr)
 		return solve.solve_optimal_from_bottom(self.kociemba_str(), verbose)
-	
-	def enqueue_scramble(self, scramble_queue, capacity = 10):
-		"""Fill a given Queue with scramble until it is either full or a given capacity has been reached"""
-		while True:
-			if not scramble_queue.full() and (scramble_queue.qsize() < capacity or capacity <= 0):
-				scramble_queue.put(self.get_scramble())
-	
-	def threaded_scramble(self, scramble_queue, capacity = 10):
-		"""Create and start a thread that fills a given queue with scrambles."""
-		t = Thread(target=self.enqueue_scramble, args=(scramble_queue,capacity))
-		t.start()
-		return t
 	
 	def __repr__(self):
 		"""Return the type of cube and an ANSI color representation."""
@@ -314,6 +304,40 @@ class Cube:
 			else:
 				self.apply(TurnSequence(usr))
 
+class ScrambleGenerator():
+	def __init__(self, x = 3, capacity = 10, random_state = True):
+		self.cube = Cube(x)
+		self.queue = Queue(max((capacity, 0)))
+		self.thread = Thread(target=self.enqueue_scramble)
+		self.stopped = False
+		self.thread.start()
+
+	def enqueue_scramble(self):
+		"""Fill a given Queue with scramble until it is either full or a given capacity has been reached"""
+		while not self.stopped:
+			if not self.queue.full():
+				self.queue.put(self.cube.get_scramble())
+
+	def __next__(self):
+		return self.queue.get()
+
+	def __enter__(self):
+		if self.stopped: 
+			self.stopped = False
+			self.thread.start()
+		return self
+	
+	def __exit__(self, type = None, value = None, traceback = None):
+		if not self.stopped:
+			self.stopped = True
+			self.thread.join()
+	
+	def __iter__(self):
+		return self
+	
+	start, stop = __enter__, __exit__
+	
+
 def demo_random_turns(n = 3):
 	from time import sleep
 	r = Cube(n)
@@ -330,16 +354,15 @@ def demo_random_turns(n = 3):
 def demo_kociemba():
 	print('Initializing...')
 	r = Cube(3)
-	scramble_queue = Queue(maxsize = 10)
-	r.threaded_scramble(scramble_queue)
-	while True:
-		r.apply(scramble_queue.get())
-		print(r)
-		for t in TurnSequence(r.two_phase_solution()[0]):
-			r.apply(t)
+	with ScrambleGenerator() as scrambler:
+		while True:
+			r.apply(next(scrambler))
 			print(r)
-			sleep(.1)
-		sleep(1)
+			for t in TurnSequence(r.two_phase_solution()[0]):
+				r.apply(t)
+				print(r)
+				sleep(.1)
+			sleep(1)
 
 if __name__=="__main__":
 	#~ Cube(3).interact()

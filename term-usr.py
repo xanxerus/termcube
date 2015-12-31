@@ -3,9 +3,10 @@
 
 from time import time
 from threading import Thread
-from cube import Cube
+from cube import Cube, ScrambleGenerator
 from collections import namedtuple
 from os.path import isfile
+from queue import Queue
 
 class Solve(namedtuple('Solve', ['time', 'penalty', 'tags', 'scramble'])):
 	def totaltime(self):
@@ -75,71 +76,6 @@ def count_up():
 	print('%-10s' % '\r')
 	return ret
 
-def get_times(n = 0, cube_size = 3, inspection_time = 15, using_tags = True):
-	"""Provide a scramble, inspect for a given time, then count up until
-	stopped. Loop n times or until stopped by typing "end".
-	Return a list of all the times.
-	"""
-	ret = []
-	cube = Cube(cube_size)
-	solvenumber = 1
-	next_scramble = [cube.scramble()]
-	
-	while n <= 0 or x <= n:
-		print('Solve %d' % solvenumber)
-		this_scramble = next_scramble[0]
-		cube.reset()
-		cube.apply("x")
-		cube.apply(this_scramble)
-		print(this_scramble)
-		print(cube, end='')
-		cube.threaded_scramble(next_scramble)
-		
-		usr = input()
-		while usr:
-			if usr == 'end':
-				break
-			elif usr.startswith('stat'):
-				total, d = stats(ret)
-				print('%-10s %.2f' % ('All', total))
-				for k in d:
-					print('%-10s %.2f' % (k, d[k]))
-			elif usr.startswith('export'):
-				print('Name of file to export to: ', end='')
-				filename = input()
-				export_times(filename, ret)
-				print("Export successful") 
-			elif usr.startswith('del'):
-				try:
-					q = int(usr.split()[1])-1
-				except:
-					q = len(ret)-1
-				try:
-					print('Removing solve number %d: %.2f' % (q, ret[q][1]))
-					del ret[q]
-				except:
-					print('Unable to remove solve %d' % q)
-			usr = input()
-		
-		if usr=='end':
-			break
-		
-		penalty = count_down(inspection_time)
-		time = count_up()
-		tags = ''
-		
-		while using_tags and not tags:
-			print("Apply your tag(s) or 'del' to forget this solve: ", end='')
-			tags = input()
-			if tags == 'del':
-				break
-			if not tags:
-				continue
-		else:
-			solvenumber += 1
-			ret.append(Solve(time, penalty, tags, this_scramble))
-			print()
-
 def stats(arr):
 	dic = {}
 	for solve in arr:
@@ -172,12 +108,77 @@ def avg_times(arr):
 	l = len(times)
 	return sum(times)/l if l > 0 else 0, sum(times[1:-1])/(l-2) if l > 2 else 0
 
-if __name__=='__main__':
-	while True:
-		i = prompt_number('Session inspection time (default 15s): ', 15.0)
-		x = int(prompt_number('Cube size (default 3): ', 3))
-		print('Use tags? (default yes): ', end='')
-		t = not input().startswith('n')
-		print('Initializing...')
-		get_times(inspection_time=i, cube_size=x, using_tags=t)
+def get_times(n=0, cube_size=3, inspection_time=15, using_tags=True):
+	print('Initializing...')
+	ret = []
+	cube = Cube(cube_size)
+	solve_number = 1
+	with ScrambleGenerator(cube_size) as scrambler:
+		while n <= 0 or solve_number <= n:
+			cube.reset()
+			cube.apply('x')
+			scramble = next(scrambler)
+			cube.apply(scramble)
+			print('Solve %d' % solve_number)
+			
+			print(cube)
+			print(scramble, end='')
+			
+			usr = input()
+			while usr:
+				if usr == 'end':
+					return solve_number-1, ret 
+				elif usr.startswith('stat'):
+					total, d = stats(ret)
+					print('%-10s %.2f' % ('All', total))
+					for k in d:
+						print('%-10s %.2f' % (k, d[k]))
+				elif usr.startswith('export'):
+					print('Name of file to export to: ', end='')
+					filename = input()
+					export_times(filename, ret)
+					print("Export successful") 
+				elif usr.startswith('del'):
+					delete_index = prompt_number("Delete which scramble number? (default last): ", default=len(ret))-1
+					try:
+						t = ret[delete_index].totaltime()
+						del ret[delete_index]
+						print('Removed solve number %d: %.2f' % (delete_index, t))
+					except:
+						print('Unable to remove solve %d' % delete_index)
+				usr = input()
+			
+			penalty = count_down(inspection_time)
+			time = count_up()
+			tags = ''
+			
+			while using_tags and not tags:
+				print("Type your tag(s) or 'del' to forget this solve: ", end='')
+				tags = input()
+				if tags == 'del':
+					break
+				if not tags:
+					continue
+			else:
+				solve_number += 1
+				ret.append(Solve(time, penalty, tags, scramble))
+				print()
+	return solve_number-1, ret 
 
+if __name__=='__main__':
+	#Prompt session info
+	inspection_time = prompt_number('Session inspection time (default 15s): ', 15.0)
+	cube_size = int(prompt_number('Cube size (default 3): ', 3))
+	print('Use tags? (default yes): ', end='')
+	using_tags = not input().startswith('n')
+	
+	#Main application
+	get_times(cube_size=cube_size, inspection_time=inspection_time, using_tags=using_tags)
+
+	#Exit
+	print("Session has ended.")
+	print("Statistics: ")
+	total, d = stats(ret)
+	print('%-10s %.2f' % ('All', total))
+	for k in d:
+		print('%-10s %.2f' % (k, d[k]))
