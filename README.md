@@ -9,8 +9,10 @@ in that it can simulate a 3x3x3 and can reverse an algorithm. It lacks the abili
 algorithm, but has a two-phase solver (thanks to muodov's pyhton port), an interactive mode, a timer, and works 
 with cubes of any side length > 1. 
 
-It also supports random-state scrambles for the 3x3x3 and uses them by default. Each scramble takes longer
-than is desirable at the moment. I suggest either using pypy3 or disabling random state entirely.
+It also supports random-state scrambles for the 3x3x3 and uses them by default. Solves and scrambles no longer
+take a godawful amount of time thanks to threading. When using the timer, scrambles are generated in the
+background, making them available almost immediately after initialization. On slower computers, this might
+not be the case, but they can be disabled at startup.  
 
 ##Demonstration
 ```python
