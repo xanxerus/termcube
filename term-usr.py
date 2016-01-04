@@ -16,6 +16,7 @@ Repeat.
 Available commands:
 end         End this timer session (you will be able to export after)
 stat        Display this session's statistics so far
+merge       Rename one tag or merge multiple together
 export      Export your times to a file
 del         Delete a solve
 help        Display this help text
@@ -102,6 +103,8 @@ def stats(arr):
 				dic[tag].append(solve.totaltime())
 			else:
 				dic[tag] = [solve.totaltime()]
+	if 'Untagged' in dic:
+		del dic['Untagged']
 	for k in dic:
 		dic[k] = mean(dic[k])
 	
@@ -118,7 +121,7 @@ def export_times(filename, ret):
 
 def get_times(n=0, cube_size=3, inspection_time=15, using_tags=True, using_random_state=True, scramble_length=-1):
 	print('Initializing...')
-	ret = []
+	solves = []
 	cube = Cube(cube_size)
 	solve_number = 1
 	with ScrambleGenerator(x=cube_size, random_state=using_random_state, moves=scramble_length) as scrambler:
@@ -135,25 +138,37 @@ def get_times(n=0, cube_size=3, inspection_time=15, using_tags=True, using_rando
 			usr = input()
 			while usr:
 				if usr == 'end':
-					return solve_number-1, ret 
+					return solve_number-1, solves 
 				elif usr.startswith('stat'):
-					total, d = stats(ret)
+					total, d = stats(solves)
 					print('%-10s %.2f' % ('All', total))
 					for k in d:
 						print('%-10s %.2f' % (k, d[k]))
+				elif usr.startswith('merge'):
+					merge_tags, new_tag = '', ''
+					while merge_tags == '':
+						print('List of tag(s) to merge/rename: ')
+						merge_tags = input().split()
+					while new_tag == '':
+						print('New tag name: ')
+						new_tag = input()
+					for solve in solves:
+						for target in merge_tags:
+							solve.tags = solve.tags.replace(target, new_tag)
+						print('Success')
 				elif usr.startswith('export'):
 					print('Name of file to export to: ', end='')
 					filename = input()
-					export_times(filename, ret)
+					export_times(filename, solves)
 					print("Export successful") 
 				elif usr.startswith('del'):
-					delete_index = prompt_number("Delete which scramble number? (default last): ", default=len(ret))-1
+					delete_index = prompt_number("Delete which scramble number? (default last): ", default=len(solves))-1
 					try:
-						t = ret[delete_index].totaltime()
-						del ret[delete_index]
-						print('Removed solve number %d: %.2f' % (delete_index, t))
+						t = solves[delete_index].totaltime()
+						del solves[delete_index]
+						print('Removed solve number %d: %.2f' % (delete_index+1, t))
 					except:
-						print('Unable to remove solve %d' % delete_index)
+						print('Unable to remove solve %d' % delete_index+1)
 				else:
 					print(help_text)
 				usr = input()
@@ -175,9 +190,9 @@ def get_times(n=0, cube_size=3, inspection_time=15, using_tags=True, using_rando
 					continue
 			else:
 				solve_number += 1
-				ret.append(Solve(time, penalty, tags if using_tags else 'Untagged', scramble))
+				solves.append(Solve(time, penalty, tags if using_tags else 'Untagged', scramble))
 				print()
-	return solve_number-1, ret 
+	return solve_number-1, solves 
 
 if __name__=='__main__':
 	#Prompt session info
