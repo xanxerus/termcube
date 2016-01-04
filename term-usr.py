@@ -45,11 +45,11 @@ def prompt_number(prompt = 'Enter a number: ', default = 15):
 		usr = input()
 		if usr:
 			try:
-				return float(usr)
+				return int(usr)
 			except:
 				continue
 		else:
-			return float(default)
+			return int(default)
 
 def count_down(inspection_time = 15.):
 	"""Count down a given number of seconds or until interrupted by
