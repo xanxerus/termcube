@@ -12,7 +12,7 @@ class Turn():
 	axes = ('x', 'y', 'z')
 	slices = ('M', 'S', 'E')
 	moves = faces + axes + slices
-	lower_faces = map(str.lower, faces)
+	lower_faces = [s.lower() for s in faces]
 	
 	def __init__(self, move, direction = '', depth = 0):
 		"""Initialize a Turn with a given move, direction, and depth.

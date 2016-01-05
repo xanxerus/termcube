@@ -272,7 +272,7 @@ class Cube:
 		while True:
 			print(self)
 			print()
-			usr = input()
+			usr = input().strip()
 			if usr == 'reset':
 				self.reset()
 			elif usr == 'solve':
@@ -307,7 +307,10 @@ class Cube:
 			elif usr == 'help':
 				print(help_text)
 			else:
-				self.apply(TurnSequence(usr))
+				try:
+					self.apply(TurnSequence(usr))
+				except:
+					print('Invalid move: %s' % usr)
 
 class ScrambleGenerator():
 	def __init__(self, x = 3, capacity = 10, random_state = True, moves = -1):
@@ -376,6 +379,6 @@ def demo_kociemba():
 			sleep(1)
 
 if __name__=="__main__":
-	#~ Cube(3).interact()
-	demo_kociemba()
+	Cube(3).interact()
+	#~ demo_kociemba()
 	
