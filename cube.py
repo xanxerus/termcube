@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python3 -i
 # -*- coding: utf-8 -*-
 
 from turn import Turn, TurnSequence
@@ -8,8 +8,6 @@ from threading import Thread
 import scramble
 from queue import Queue
 import solve
-
-#~ from solve import _solve
 
 help_text = '''Cube interactive mode
 Manipulate a virtual cube
