@@ -1,9 +1,11 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import time
 from pykociemba.coordcube import CoordCube, getPruning
 from pykociemba.cubiecube import CubieCube
 from random import randrange
-from turn import TurnSequence 
+from turn import TurnSequence
 from threading import Thread
 from random import randrange, shuffle
 ax_to_s = ["U", "R", "F", "D", "L", "B"]
@@ -22,7 +24,7 @@ def _attemptScramble(maxDepth = 24, timeOut = 1000, useSeparator = False):
     shuffle(ep)
     eo = [randrange(2) for i in range(11)]
     eo.append(1 - (sum(eo) & 1))
-    
+
     c = CubieCube(cp=cp, co=co, ep=ep, eo=eo)
     if c.edgeParity() != c.cornerParity():
         c.ep[-1], c.ep[-2] = c.ep[-2], c.ep[-1]
@@ -41,19 +43,19 @@ def _attemptScramble(maxDepth = 24, timeOut = 1000, useSeparator = False):
     URtoDF          = [0] * 31
     minDistPhase1   = [0, 1] + [0] * 29  # IDA* distance do goal estimations
     minDistPhase2   = [0] * 31
-    
+
     mv = 0
     n = 0
     busy = False
     depthPhase1 = 1
     tStart = time.time()
-    
+
     #~ print("twist %d flip %d parity %d FRtoBR %d URFtoDLF %d URtoUL %d UBtoDF %d" %\
         #~ (twist[0], flip[0], parity[0], FRtoBR[0], URFtoDLF[0], URtoUL[0], UBtoDF[0]), end='')
-    
+
     # ++++++++++++++++++++ Define string thingy ++++++++++++++++++++++++++++++
-    
-    
+
+
     def solutionToString(length, depthPhase1=None):
         """generate the solution string from the array data"""
         s = ""
@@ -63,10 +65,10 @@ def _attemptScramble(maxDepth = 24, timeOut = 1000, useSeparator = False):
             if depthPhase1 is not None and i == depthPhase1 - 1:
                 s += ". "
         return s
-    
-    
+
+
     # ++++++++++++++++++++ Define phase two ++++++++++++++++++++++++++++++++++
-    
+
     def totalDepth(depthPhase1, maxDepth):
         """
         Apply phase2 of algorithm and return the combined phase1 and phase2 depth. In phase2, only the moves
@@ -94,7 +96,7 @@ def _attemptScramble(maxDepth = 24, timeOut = 1000, useSeparator = False):
             mv = 3 * ax[i] + po[i] - 1
             URtoUL[i + 1] = CoordCube.URtoUL_Move[URtoUL[i]][mv]
             UBtoDF[i + 1] = CoordCube.UBtoDF_Move[UBtoDF[i]][mv]
-        
+
         URtoDF[depthPhase1] = CoordCube.MergeURtoULandUBtoDF[URtoUL[depthPhase1]][UBtoDF[depthPhase1]]
 
         d2 = getPruning(
