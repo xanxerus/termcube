@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from sys import argv
+from argparse import ArgumentParser, Namespace
 
 help_text = \
 """
@@ -194,29 +196,66 @@ def get_times(n=0, cube_size=3, inspection_time=15, using_tags=True, using_rando
                 print()
     return solve_number-1, solves
 
+def parse_args():
+    parser = ArgumentParser(description="Time some cubes", epilog=help_text)
+    parser.add_argument('--unofficial', '-u', 
+                        action='store_true',
+                        help='Use a low CPU alternative to official style scrambles')
+
+    parser.add_argument('--using-tags', '-t', 
+                        action='store_true',
+                        help='Apply tags after each solve to sort')
+
+    parser.add_argument('--dimension', '-d',
+                        default=3,
+                        type=int,
+                        help='The N dimension on an NxNxN cube (default 3)')
+
+    parser.add_argument('--inspection', '-i',
+                        default=15.0,
+                        type=float,
+                        help='The number of seconds to inspect (default 15)')
+
+    parser.add_argument('--length', '-l',
+                        default=-1,
+                        type=int,
+                        help='The number of moves for a non-random-state scramble')
+    
+    return parser.parse_args()
+
+def prompt_args():
+    options = Namespace()
+    print(help_text)
+    options.inspection = prompt_number('Seconds of inspection time (default 15): ', 15.0)
+    options.dimension = int(prompt_number('Cube size (default 3): ', 3))
+    print('Use tags? (default yes): ', end='')
+    options.using_tags = not input().startswith('n')
+    
+    options.unofficial = False
+    if options.dimension == 3:
+        print('Use random state scrambles? This may lag on your computer. (default yes): ', end='')
+        options.unofficial = not input().startswith('n')
+    
+    options.length = -1
+    if options.unofficial:
+        options.length = prompt_number(
+                            prompt=('How long should scrambles be? (default %d): ' 
+                                % TurnSequence.default_moves(options.dimension)),
+                            default=-1)
+    return options
+
 if __name__=='__main__':
     #Prompt session info
-    print(help_text)
-    inspection_time = prompt_number('Seconds of inspection time (default 15): ', 15.0)
-    cube_size = int(prompt_number('Cube size (default 3): ', 3))
-    print('Use tags? (default yes): ', end='')
-    using_tags = not input().startswith('n')
-
-    using_random_state = False
-    if cube_size == 3:
-        print('Use random state scrambles? This may lag on your computer. (default yes): ', end='')
-        using_random_state = not input().startswith('n')
-
-    scramble_length = -1
-    if not using_random_state:
-        scramble_length = prompt_number(prompt=('How long should scrambles be? (default %d): ' % TurnSequence.default_moves(cube_size)), default=-1)
-
+    if len(argv) == 1:
+        options = prompt_args()
+    else:
+        options = parse_args()
     #Main application
-    solves, times = get_times(cube_size=cube_size,
-                              inspection_time=inspection_time,
-                              using_tags=using_tags,
-                              using_random_state = using_random_state,
-                              scramble_length=scramble_length)
+    solves, times = get_times(cube_size=options.dimension, 
+                              inspection_time=options.inspection, 
+                              using_tags=options.using_tags, 
+                              using_random_state = not options.unofficial, 
+                              scramble_length=options.length)
 
     #Exit
     total, d = stats(times)
