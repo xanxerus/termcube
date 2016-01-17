@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import sys
-from .scramble.pykociemba import search
+from .pykociemba import search
 from time import time
-from .turn import TurnSequence
+from ..turn import TurnSequence
 
 errors = {
     'Error 1': 'There is not exactly one facelet of each colour',

@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import time
-from .pykociemba.coordcube import CoordCube, getPruning
-from .pykociemba.cubiecube import CubieCube
+from ..solve.pykociemba.coordcube import CoordCube, getPruning
+from ..solve.pykociemba.cubiecube import CubieCube
 from random import randrange
-from term_cube.turn import TurnSequence
+from ..turn import TurnSequence
 from threading import Thread
 from random import randrange, shuffle
 ax_to_s = ["U", "R", "F", "D", "L", "B"]
