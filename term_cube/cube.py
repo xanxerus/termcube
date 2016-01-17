@@ -1,13 +1,13 @@
 #!/usr/bin/python3 -i
 # -*- coding: utf-8 -*-
 
-from turn import Turn, TurnSequence
+from .turn import Turn, TurnSequence
 from time import time, sleep
 from sys import stderr
 from threading import Thread
-import scramble
+from . import scramble
 from queue import Queue
-import solve
+from . import solve
 
 help_text = '''Cube interactive mode
 Manipulate a virtual cube
