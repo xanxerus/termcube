@@ -4,9 +4,8 @@
 import time
 from ..solve.pykociemba.coordcube import CoordCube, getPruning
 from ..solve.pykociemba.cubiecube import CubieCube
-from random import randrange
 from ..turn import TurnSequence
-from threading import Thread
+from .. import Cube
 from random import randrange, shuffle
 ax_to_s = ["U", "R", "F", "D", "L", "B"]
 po_to_s = [None, " ", "2 ", "' "]
