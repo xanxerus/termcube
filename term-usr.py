@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from sys import argv
 from argparse import ArgumentParser, Namespace
@@ -56,9 +56,9 @@ def prompt_number(prompt = 'Enter a number: ', default = 15):
 
 def count_down(inspection_time = 15.):
     """Count down a given number of seconds or until interrupted by
-    the enter key, then return a penalty corresponding to the time past 
+    the enter key, then return a penalty corresponding to the time past
     the allotted inspection time that the timer was stopped.
-    
+
     Seconds over    Penalty
     0               0
     2               2
@@ -66,7 +66,7 @@ def count_down(inspection_time = 15.):
     """
     if inspection_time <= 0:
         return 0
-    
+
     stop = []
     Thread(target=(lambda stop:stop.append(input())), args=(stop,)).start()
     start = time()
@@ -77,9 +77,9 @@ def count_down(inspection_time = 15.):
             print('%-5s' % '+2', end='\r')
         else:
             print('%-5s' % 'DNF', end='\r')
-    
+
     dt = time() - start - inspection_time
-    
+
     return 0 if dt <= 0 else 2 if dt <= 2 else 'DNF'
 
 
@@ -109,7 +109,7 @@ def stats(arr):
         del dic['Untagged']
     for k in dic:
         dic[k] = mean(dic[k])
-    
+
     return sum(e.totaltime() for e in arr)/len(arr), dic
 
 def export_times(filename, ret):
@@ -133,14 +133,14 @@ def get_times(n=0, cube_size=3, inspection_time=15, using_tags=True, using_rando
             scramble = next(scrambler)
             cube.apply(scramble)
             print('Solve %d' % solve_number)
-            
+
             print(cube)
             print(scramble, end='')
-            
+
             usr = input()
             while usr:
                 if usr == 'end':
-                    return solve_number-1, solves 
+                    return solve_number-1, solves
                 elif usr.startswith('stat'):
                     total, d = stats(solves)
                     print('%-10s %.2f' % ('All', total))
@@ -162,7 +162,7 @@ def get_times(n=0, cube_size=3, inspection_time=15, using_tags=True, using_rando
                     print('Name of file to export to: ', end='')
                     filename = input()
                     export_times(filename, solves)
-                    print("Export successful") 
+                    print("Export successful")
                 elif usr.startswith('del'):
                     delete_index = prompt_number("Delete which scramble number? (default last): ", default=len(solves))-1
                     try:
@@ -174,15 +174,15 @@ def get_times(n=0, cube_size=3, inspection_time=15, using_tags=True, using_rando
                 else:
                     print(help_text)
                 usr = input()
-            
+
             penalty = count_down(inspection_time)
             time = count_up()
             tags = ''
-            
+
             if penalty == 'DNF':
                 print('DNF times are not saved')
                 continue
-            
+
             while using_tags and not tags:
                 print("Type your tag(s) or 'del' to forget this solve: ", end='')
                 tags = input()
@@ -194,7 +194,7 @@ def get_times(n=0, cube_size=3, inspection_time=15, using_tags=True, using_rando
                 solve_number += 1
                 solves.append(Solve(time, penalty, tags if using_tags else 'Untagged', scramble))
                 print()
-    return solve_number-1, solves 
+    return solve_number-1, solves
 
 def parse_args():
     parser = ArgumentParser(description="Time some cubes", epilog=help_text)
@@ -268,4 +268,4 @@ if __name__=='__main__':
         print('Name of file to export to: ', end='')
         filename = input()
         export_times(filename, times)
-        print("Export successful") 
+        print("Export successful")
