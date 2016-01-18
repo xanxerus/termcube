@@ -1,6 +1,3 @@
-#!/usr/bin/python3 -i
-# -*- coding: utf-8 -*-
-
 from turn import Turn, TurnSequence
 from time import time, sleep
 from sys import stderr
@@ -9,8 +6,11 @@ import scramble
 from queue import Queue
 import solve
 
-help_text = '''Cube interactive mode
-Manipulate a virtual cube
+help_text = \
+"""Term Cube Simulator Interactive Mode
+
+Manipulate a virtual cube using cube notation
+
 Available commands:
 -reset      - Reset the cube to a solved position
 -solve      - Display a two-phase solution
@@ -18,8 +18,8 @@ Available commands:
 -sexy       - Apply the sexy move (R U R' U')
 -scramble   - Print a random Turn Sequence and apply it
 -solved?    - Print if the cube is solved
--exit       - Exit interactive mode
--help       - Access this help text'''
+-exit       - Exit interactive mode (change cube)
+-help       - Access this help text"""
 
 def rotate_cw(face):
     """Returns a clockwise rotated version of a given 2D list"""
@@ -375,8 +375,3 @@ def demo_kociemba():
                 print(r)
                 sleep(.1)
             sleep(1)
-
-if __name__=="__main__":
-    Cube(3).interact()
-    #~ demo_kociemba()
-

@@ -1,12 +1,8 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 from sys import argv
 from argparse import ArgumentParser, Namespace
 
 help_text = \
-"""
-term-cube timer
-by Oddlespuddle
+"""Term Cube Timer
 
 After scrambles, type a command or just press enter to start inspection.
 Once inspected, press enter again to start the solve. Hurry! Penalties apply.
@@ -16,13 +12,12 @@ type "del" to delete that solve.
 Repeat.
 
 Available commands:
-end         End this timer session (you will be able to export after)
-stat        Display this session's statistics so far
-merge       Rename one tag or merge multiple together
-export      Export your times to a file
-del         Delete a solve
-help        Display this help text
-"""
+-end        - End this timer session (you will be able to export after)
+-stat       - Display this session's statistics so far
+-merge      - Rename one tag or merge multiple together
+-export     - Export your times to a file
+-del        - Delete a solve
+-help       - Display this help text"""
 
 from time import time
 from threading import Thread
@@ -38,21 +33,6 @@ class Solve(namedtuple('Solve', ['time', 'penalty', 'tags', 'scramble'])):
 
 def mean(arr):
     return sum(arr)/len(arr)
-
-def prompt_number(prompt = 'Enter a number: ', default = 15):
-    """Print a given prompt string and return the user's input as a float.
-    If invalid or no input, return a given default.
-    """
-    while True:
-        print(prompt, end = '')
-        usr = input()
-        if usr:
-            try:
-                return int(usr)
-            except:
-                continue
-        else:
-            return int(default)
 
 def count_down(inspection_time = 15.):
     """Count down a given number of seconds or until interrupted by
@@ -121,13 +101,13 @@ def export_times(filename, ret):
     with open(filename, 'w' if isfile(filename) else 'a') as o:
         o.write(p)
 
-def get_times(n=0, cube_size=3, inspection_time=15, using_tags=True, using_random_state=True, scramble_length=-1):
+def get_times(cube_size=3, inspection_time=15, using_tags=True, using_random_state=True, scramble_length=-1):
     print('Initializing...')
     solves = []
     cube = Cube(cube_size)
     solve_number = 1
     with ScrambleGenerator(x=cube_size, random_state=using_random_state, moves=scramble_length) as scrambler:
-        while n <= 0 or solve_number <= n:
+        while True:
             cube.reset()
             cube.apply('x')
             scramble = next(scrambler)
@@ -195,77 +175,3 @@ def get_times(n=0, cube_size=3, inspection_time=15, using_tags=True, using_rando
                 solves.append(Solve(time, penalty, tags if using_tags else 'Untagged', scramble))
                 print()
     return solve_number-1, solves
-
-def parse_args():
-    parser = ArgumentParser(description="Time some cubes", epilog=help_text)
-    parser.add_argument('--unofficial', '-u', 
-                        action='store_true',
-                        help='Use a low CPU alternative to official style scrambles')
-
-    parser.add_argument('--using-tags', '-t', 
-                        action='store_true',
-                        help='Apply tags after each solve to sort')
-
-    parser.add_argument('--dimension', '-d',
-                        default=3,
-                        type=int,
-                        help='The N dimension on an NxNxN cube (default 3)')
-
-    parser.add_argument('--inspection', '-i',
-                        default=15.0,
-                        type=float,
-                        help='The number of seconds to inspect (default 15)')
-
-    parser.add_argument('--length', '-l',
-                        default=-1,
-                        type=int,
-                        help='The number of moves for a non-random-state scramble')
-    
-    return parser.parse_args()
-
-def prompt_args():
-    options = Namespace()
-    print(help_text)
-    options.inspection = prompt_number('Seconds of inspection time (default 15): ', 15.0)
-    options.dimension = int(prompt_number('Cube size (default 3): ', 3))
-    print('Use tags? (default yes): ', end='')
-    options.using_tags = not input().startswith('n')
-    
-    options.unofficial = False
-    if options.dimension == 3:
-        print('Use random state scrambles? This may lag on your computer. (default yes): ', end='')
-        options.unofficial = not input().startswith('n')
-    
-    options.length = -1
-    if options.unofficial:
-        options.length = prompt_number(
-                            prompt=('How long should scrambles be? (default %d): ' 
-                                % TurnSequence.default_moves(options.dimension)),
-                            default=-1)
-    return options
-
-if __name__=='__main__':
-    #Prompt session info
-    if len(argv) == 1:
-        options = prompt_args()
-    else:
-        options = parse_args()
-    #Main application
-    solves, times = get_times(cube_size=options.dimension, 
-                              inspection_time=options.inspection, 
-                              using_tags=options.using_tags, 
-                              using_random_state = not options.unofficial, 
-                              scramble_length=options.length)
-
-    #Exit
-    total, d = stats(times)
-    print("Session has ended. Statistics:")
-    statstring = 'Average of %d: %.2f\n' % (solves, total)
-    statstring += '\n'.join('%-10s %.2f' % (k, d[k]) for k in d)
-    print(statstring)
-    print('Export your times to a file?')
-    if input().startswith('y'):
-        print('Name of file to export to: ', end='')
-        filename = input()
-        export_times(filename, times)
-        print("Export successful")

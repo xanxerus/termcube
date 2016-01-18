@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 import time
 from pykociemba.coordcube import CoordCube, getPruning
 from pykociemba.cubiecube import CubieCube
@@ -286,6 +283,3 @@ def scrambleTime():
         scramble()
         q.append(time()-t)
         print(q[-1])
-
-if __name__=='__main__':
-    scrambleTime()
