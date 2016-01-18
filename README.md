@@ -1,10 +1,10 @@
 # term-cube
-Term-cube can simulate a cubic twistypuzzles with arbitrary side lengths 
-and implements a cube timer in terminal. The cube simulator has a lot of
+Term Cube is a cube timer and simulator which can simulate cubic 
+twistypuzzles with arbitrary side lengths. The cube simulator has a lot of
 the same functionality as PyCuber <https://github.com/adrianliaw/PyCuber>
 in that it can simulate a 3x3x3 and can reverse an algorithm. The timer
-has a Two-Phase Algorithm solver, random state scrambling for 3x3x3, an 
-interactive mode, a timer, and works with cubes of any side length > 1. 
+has a Two-Phase Algorithm solver, random state scrambling for 3x3x3, 
+solve tagging for statistics, and works with cubes of any side length > 1. 
 
 It uses random-state scrambles for the 3x3x3 by default. Solves and 
 scrambles no longer take a godawful amount of time thanks to threading,
@@ -13,7 +13,7 @@ in the background, making them available almost immediately after
 initialization. On slower computers, this might not be the case, 
 but they can be disabled at startup, fixing the lag and the CPU usage.
 
-##Demonstration
+##Simulator Demonstration
 ```python
 >>> from cube import Cube
 >>> r = Cube(4)
@@ -35,6 +35,39 @@ scramble
 ```
 ![scrambled cube image](http://i.imgur.com/IWLjDhg.png)
 
+##termcube
+This script is the only script that can and should be executed. Others
+should only be imported from or run interactively.
+
+It contains the front end to all other scripts, i.e., run this script to
+access the timer, simulator, or any demonstrations.
+
+Here is the help text:
+
+Term Cube: Timer and Simulator
+usage: termcube [-h] [--inspection INSPECTION] [--unofficial [UNOFFICIAL]]
+                [--using-tags]
+                [behaviour] [dimension]
+
+positional arguments:
+  behaviour             timer, simulator, demo-kociemba, random-turns
+  dimension             Cube side length (default 3)
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --inspection INSPECTION, -i INSPECTION
+                        The number of seconds to inspect (default 15)
+  --unofficial [UNOFFICIAL], -u [UNOFFICIAL]
+                        Use a low CPU alternative to official style scrambles
+  --using-tags, -t      Apply tags after each solve to sort
+
+possible behaviours:
+timer           - cube timer
+simulator       - simulate a cube of amy side length > 0
+demo-kociemba   - random-state scramble then solve a cube with  
+                  Kociemba's two-phase algorithm, turn by turn
+random-turns    - Start from solved, then apply random turns until solved
+
 ##turn.py
 This module has two classes, Turn and TurnSequence. A Turn represents a 
 single move that can be used to manipulate a cube with any arbitrary 
@@ -44,25 +77,33 @@ A can return a TurnSequence B that undoes A. They can also produce
 random turn scrambles.
 
 ##cube.py
-This module has one class, Cube, which takes a given side length > 1 and
-simulates a cube. It can apply an arbitrary Turn object to itself (as 
-long as its depth is less than its side length). It implements __str__()
-that uses ANSI color codes to represent colors. Orange is represented by
-purple here because there is no orange ANSI color code.
+This module has two classes: ScrambleGenerator, which generates random state
+scrambles in a separate thread and returns them when requested, and
+Cube, which simulates a cube of any side length > 1. A Cube can apply an
+arbitrary Turn object to itself (as long as its depth is less than its 
+side length). It implements a __str__() that uses ANSI color codes to 
+represent colors. Orange is represented by purple because there is no 
+orange ANSI color code.
 
 The interact method works repl style. You can input a given sequence of 
 cube notation (WCA or SiGN will both work equally) and it will be 
 applied to the cube and print itself. Try it, it's very fun.
 
 ##term-usr.py
-This module is a timer. By default it generates random 3x3x3 scrambles,
-prints what a cube would look like after applying the scramble, counts 
-down inspection until stopped, then counts up until stopped, and repeats
-until stopped. Once stopped, it prints the average.
+This module contains timer functions. By default it generates random state
+3x3x3 scrambles, prints what a cube would look like after applying the 
+scramble, counts down until inspections is stopped, then counts up until
+stopped, and repeats until stopped.
+
+It supports rudimentary exports to files, deleting times, adding penalties,
+and also tagging a solve at the end of solve time so that each time can 
+be sorted by attributes that interest the user.
 
 ##web-usr.py
 This module puts random cubes on a webpage on localhost:8000 using 
 visualcube. <http://cube.crider.co.uk/visualcube.php>
+
+Not very useful. May be expanded later.
 
 ##solve.py
 This module has one real function which solves a cube from a given 
@@ -73,7 +114,13 @@ port of two-phase can be found at <https://github.com/muodov/kociemba>.
 ##scramble.py
 This module is adapted from muodov's solve.py. It generates a cube in a
 randomly assembled but solvable state, solves it with Kociemba's
-algorithm, then returns the inverse of the solution. 
+algorithm, then returns the inverse of the solution.
+
+Description and source for muodov's python port of two-phase can be 
+found at <https://github.com/muodov/kociemba>.
+
+Description of Kociemba's two-phase algorithm can be found at 
+<http://kociemba.org/cube.htm>
 
 If anyone has any suggestions for speeding up the solver I would be
 very happy to know.
