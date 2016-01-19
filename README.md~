@@ -99,6 +99,12 @@ It supports rudimentary exports to files, deleting times, adding penalties,
 and also tagging a solve at the end of solve time so that each time can 
 be sorted by attributes that interest the user.
 
+##webusr.py
+This module puts random cubes on a webpage on localhost:8000 using 
+visualcube. <http://cube.crider.co.uk/visualcube.php>
+
+Not very useful. May be expanded later.
+
 ##solve.py
 This module has one real function which solves a cube from a given 
 sticker string using muodov's implementation of kociemba's two phase 
