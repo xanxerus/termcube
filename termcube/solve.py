@@ -18,7 +18,7 @@ def solve(facelets, maxDepth = 24, timeOut = 1000, useSeparator = False):
     t = time()
     res = search.Search().solution(facelets, maxDepth, timeOut, useSeparator).strip()
     if res in errors:
-        return res, time() - t, errors[res]
+        return errors[res], time() - t
     else:
         return TurnSequence(res), time() - t
 
