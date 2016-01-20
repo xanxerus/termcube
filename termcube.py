@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from argparse import ArgumentParser, Namespace, RawDescriptionHelpFormatter
-import cube, sys, turn, term_usr
+from sys import argv
+from termcube import cube, termusr, turn 
 
 epilog_text = \
 """possible behaviours:
@@ -110,14 +111,14 @@ def prompt_args():
 
 def timer(cube_size=3, inspection_time=15, using_tags=True, using_random_state=True, scramble_length=-1):
     #Main application
-    solves, times = term_usr.get_times(cube_size, 
+    solves, times = termusr.get_times(cube_size, 
                                        inspection_time, 
                                        using_tags, 
                                        using_random_state, 
                                        scramble_length)
 
     #Exit
-    total, d = term_usr.stats(times)
+    total, d = termusr.stats(times)
     print("Session has ended. Statistics:")
     statstring = 'Average of %d: %.2f\n' % (solves, total)
     statstring += '\n'.join('%-10s %.2f' % (k, d[k]) for k in d)
@@ -126,13 +127,13 @@ def timer(cube_size=3, inspection_time=15, using_tags=True, using_random_state=T
     if input().startswith('y'):
         print('Name of file to export to: ', end='')
         filename = input()
-        term_usr.export_times(filename, times)
+        termusr.export_times(filename, times)
         print("Export successful")
 
 
 if __name__=='__main__':
     print("Term Cube: Timer and Simulator")
-    if len(sys.argv) <= 1:
+    if len(argv) <= 1:
         print("Run `termcube --help` to see how to skip these prompts")
         print()
         options = prompt_args()
@@ -156,4 +157,4 @@ if __name__=='__main__':
     elif options.behaviour == 'demo-kociemba':
         cube.demo_kociemba();
     elif options.behaviour == 'random-turns':
-        cube.demo_random_turns(options.dimensions)
+        cube.demo_random_turns(options.dimension)

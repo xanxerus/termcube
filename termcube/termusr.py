@@ -1,5 +1,14 @@
-from sys import argv
+from .cube import Cube, ScrambleGenerator
+from .turn import TurnSequence
+
 from argparse import ArgumentParser, Namespace
+from collections import namedtuple
+from os.path import isfile
+from queue import Queue
+from sys import argv
+from threading import Thread
+from time import time
+
 
 help_text = \
 """Term Cube Timer
@@ -18,14 +27,6 @@ Available commands:
 -export     - Export your times to a file
 -del        - Delete a solve
 -help       - Display this help text"""
-
-from time import time
-from threading import Thread
-from cube import Cube, ScrambleGenerator
-from turn import TurnSequence
-from collections import namedtuple
-from os.path import isfile
-from queue import Queue
 
 class Solve(namedtuple('Solve', ['time', 'penalty', 'tags', 'scramble'])):
     def totaltime(self):
