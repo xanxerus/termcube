@@ -221,7 +221,12 @@ class Cube:
         ret += ''.join(''.join(arr) for arr in self.faces['D'])
         ret += ''.join(''.join(arr) for arr in self.faces['L'])
         ret += ''.join(''.join(arr) for arr in rotate_2(self.faces['B']))
-        return ret
+        
+        q = dict()
+        for s in 'FRULDB':
+            q[self.color[self.faces[s][1][1]]] = s
+        
+        return list(q[Cube.color[s]] for s in ret)
 
     def two_phase_solution(self):
         """Find a solution using Kociemba's two phase algoithm."""
