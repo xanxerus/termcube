@@ -107,7 +107,7 @@ def prompt_args():
         options.behaviour = 'random-turns'
     
     #Set defaults
-    if not (3 <= usr <= 4):
+    if usr != 4:
         options.dimension = prompt_int("Choose a cube size (default 3): ", default=3, condition=lambda n: n > 1)
     else:
         options.dimension = 3
