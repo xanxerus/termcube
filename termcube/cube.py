@@ -41,12 +41,12 @@ class Cube:
     Allow visualization using ANSI color codes in terminal or
     using the visualcube API.
     """
-    sticker = {'F': '\033[47m \033[0m',
-               'R': '\033[41m \033[0m',
-               'U': '\033[44m \033[0m',
-               'D': '\033[42m \033[0m',
-               'L': '\033[45m \033[0m',
-               'B': '\033[43m \033[0m'}
+    sticker = {'F': '\033[47m  \033[0m',
+               'R': '\033[41m  \033[0m',
+               'U': '\033[44m  \033[0m',
+               'D': '\033[42m  \033[0m',
+               'L': '\033[45m  \033[0m',
+               'B': '\033[43m  \033[0m'}
 
     color =   {'F': 'w',
                'R': 'r',
@@ -185,7 +185,7 @@ class Cube:
         """Return the type of cube and an ANSI color representation."""
         ret = '{0}x{0}x{0} Cube'.format(self.x) + '\n'
         for r in self.faces['U']:
-            ret += ' '*self.x
+            ret += '  '*self.x
             for c in r:
                 ret += Cube.sticker[c]
             ret += '\n'
@@ -199,14 +199,8 @@ class Cube:
                 ret += Cube.sticker[c]
             ret += '\n'
 
-        for r in self.faces['D']:
-            ret += ' '*self.x
-            for c in r:
-                ret += Cube.sticker[c]
-            ret += '\n'
-
-        for r in self.faces['B']:
-            ret += ' '*self.x
+        for r in self.faces['D'] + self.faces['B']:
+            ret += '  '*self.x
             for c in r:
                 ret += Cube.sticker[c]
             ret += '\n'
