@@ -8,7 +8,6 @@ epilog_text = \
 """possible behaviours:
 timer           - cube timer
 simulator       - simulate a cube of any side length > 0
-curses          - simulate a cube in real time using curses
 demo-kociemba   - random-state scramble then solve a cube with  
                   Kociemba's two-phase algorithm, turn by turn
 random-turns    - Start from solved, then apply random turns until solved
@@ -49,7 +48,7 @@ def prompt_int(prompt = 'Enter a number: ', default = None, condition = None):
 def parse_args():
     parser = ArgumentParser(epilog=epilog_text, formatter_class=RawDescriptionHelpFormatter)
     parser.add_argument('behaviour', nargs='?', default='timer', type=str,
-                help='timer, simulator, curses, demo-kociemba, random-turns')
+                help='timer, simulator, demo-kociemba, random-turns')
 
     parser.add_argument('dimension', nargs='?', default=3, type=int,
                 help='Cube side length (default 3)')
@@ -68,11 +67,10 @@ def parse_args():
 def prompt_args():
     print('1. Timer')
     print('2. Simulator Interactive Mode')
-    print('3. Curses Simulator (Real Time Interactive Mode)')
-    print('4. Kociemba Two-Phase Algorithm demonstration')
-    print('5. Random Turn Cube Demonstration')
+    print('3. Kociemba Two-Phase Algorithm demonstration')
+    print('4. Random Turn Cube Demonstration')
     
-    usr = prompt_int("Select and option by its number: ", condition=lambda n: 1 <= n <= 5)
+    usr = prompt_int("Select and option by its number: ", condition=lambda n: 1 <= n <= 4)
     
     options = Namespace()
     if usr == 1:
@@ -100,14 +98,12 @@ def prompt_args():
     elif usr == 2:
         options.behaviour = 'simulator'
     elif usr == 3:
-        options.behaviour = 'curses'
-    elif usr == 4:
         options.behaviour = 'demo-kociemba'
-    elif usr == 5:
+    elif usr == 4:
         options.behaviour = 'random-turns'
     
     #Set defaults
-    if usr != 4:
+    if usr != 3:
         options.dimension = prompt_int("Choose a cube size (default 3): ", default=3, condition=lambda n: n > 1)
     else:
         options.dimension = 3
@@ -160,8 +156,6 @@ if __name__=='__main__':
               using_random_state = options.unofficial == None, 
               scramble_length = options.unofficial if options.unofficial else -1)
     elif options.behaviour == 'simulator':
-        cube.Cube(options.dimension).interact()
-    elif options.behaviour == 'curses':
         cursesinteract.simulate(options.dimension)
     elif options.behaviour == 'demo-kociemba':
         cube.demo_kociemba();

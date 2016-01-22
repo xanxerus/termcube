@@ -1,8 +1,14 @@
 #!/usr/bin/env python3
-import curses, sys
+import sys
 from .cube import Cube 
 from .turn import Turn, TurnSequence
 from time import sleep
+
+try:
+    import curses
+    noncurses = False
+except:
+    noncurses = True
 
 help_text = \
 """Term Cube Simulator (Curses implementation)
@@ -169,7 +175,10 @@ class Simulator:
         scr.move(maxy-1, maxx-1)
 
 def simulate(cube_size = 3):
-    try:
-        curses.wrapper(Simulator(cube_size))
-    except:
-        pass
+    if noncurses:
+        Cube(cube_size).interact()
+    else:
+        try:
+            curses.wrapper(Simulator(cube_size))
+        except:
+            pass
