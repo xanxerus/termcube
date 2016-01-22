@@ -68,7 +68,7 @@ demo-kociemba   - random-state scramble then solve a cube with
                   Kociemba's two-phase algorithm, turn by turn
 random-turns    - Start from solved, then apply random turns until solved
 
-##cursesinteract.py
+##simulator.py
 This module has one class (a cube simulator) and one function that uses
 that class to simulate a cube using python's curses module.
 

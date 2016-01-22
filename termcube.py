@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import sys
 from argparse import ArgumentParser, Namespace, RawDescriptionHelpFormatter
-from termcube import cube, cursesinteract, termusr, turn
+from termcube import cube, simulator, termusr, turn
 
 help_text=''
 
@@ -154,7 +154,7 @@ if __name__=='__main__':
               using_random_state = options.unofficial == None, 
               scramble_length = options.unofficial if options.unofficial else -1)
     elif options.behaviour == 'simulator':
-        cursesinteract.simulate(options.dimension)
+        simulator.simulate(options.dimension)
     elif options.behaviour == 'demo-kociemba':
         cube.demo_kociemba();
     elif options.behaviour == 'random-turns':
