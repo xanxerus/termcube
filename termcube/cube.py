@@ -17,7 +17,7 @@ Available commands:
 -solve      - Display a two-phase solution
 -optimal    - Display the optimal solution (will take a long time)
 -sexy       - Apply the sexy move (R U R' U')
--scramble   - Print a random Turn Sequence and apply it
+-scramble   - Print a scramble apply it
 -solved?    - Print if the cube is solved
 -exit       - Exit interactive mode (change cube)
 -help       - Access this help text"""

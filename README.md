@@ -68,6 +68,23 @@ demo-kociemba   - random-state scramble then solve a cube with
                   Kociemba's two-phase algorithm, turn by turn
 random-turns    - Start from solved, then apply random turns until solved
 
+##cursesinteract.py
+This module has one class (a cube simulator) and one function that uses
+that class to simulate a cube using python's curses module.
+
+Press F, R, U, L, D, B, M, E, S, X, Y, or Z to turn the cube.
+Hold shift and press to do the reverse of that turn.
+
+Press : to initiate a command or type a longer string of notation.
+
+Available commands:
+-reset      - Reset the cube to a solved position
+-solve      - Display a two-phase solution
+-sexy       - Apply the sexy move (R U R' U')
+-scramble   - Print a scramble and apply it
+-exit       - Exit interactive mode (change cube)
+-help       - Access this help text"""
+
 ##turn.py
 This module has two classes, Turn and TurnSequence. A Turn represents a 
 single move that can be used to manipulate a cube with any arbitrary 

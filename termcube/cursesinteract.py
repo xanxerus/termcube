@@ -1,11 +1,30 @@
+#!/usr/bin/env python3
 import curses, sys
 from .cube import Cube 
-from .turn import Turn
+from .turn import Turn, TurnSequence
+from time import sleep
+
+help_text = \
+"""Term Cube Simulator (Curses implementation)
+
+Manipulate a virtual cube using cube notation!
+
+Press F, R, U, L, D, B, M, E, S, X, Y, or Z to turn the cube.
+Hold shift and press to do the reverse of that turn.
+
+Press : to initiate a command or type a longer string of notation.
+
+Available commands:
+-reset      - Reset the cube to a solved position
+-solve      - Display a two-phase solution
+-sexy       - Apply the sexy move (R U R' U')
+-scramble   - Print a scramble and apply it
+-exit       - Exit interactive mode (change cube)
+-help       - Access this help text"""
 
 class Simulator:
     def __init__(self, cube_size = 3):
         self.cube = Cube(cube_size)
-    
     
     def __call__(self, scr):
         self.initialize(scr)
@@ -13,17 +32,66 @@ class Simulator:
         while m != chr(27):
             self.printcube(scr)
             m = chr(scr.getch())
-            u = m.upper()
-            l = m.lower()
             
-            if u in Turn.moves or l in Turn.moves:
-                if u in Turn.moves:
-                    t = Turn(u)
-                else:
-                    t = Turn(l)
-                if m == u:
-                    t = t.inverse()
-                self.cube.apply(t)
+            if m == ':':
+                scr.addstr(0, 0, ':')
+                self.command(scr, self.getln(scr).strip())
+            else:
+                u = m.upper()
+                l = m.lower()
+                
+                if u in Turn.moves or l in Turn.moves:
+                    if u in Turn.moves:
+                        t = Turn(u)
+                    else:
+                        t = Turn(l)
+                    if m == u:
+                        t = t.inverse()
+                    self.cube.apply(t)
+
+    def command(self, scr, command):
+        if command == 'reset':
+            self.cube.reset()
+        elif command == 'solve':
+            q = self.cube.two_phase_solution()
+            scr.addstr(0, 0, str(q[0]))
+            scr.addstr(1, 0, 'Solve time: %.2f seconds' % q[1])
+            scr.addstr(2, 0, 'Apply this solution? (y/n): ')
+            if chr(scr.getch()) == 'y':
+                scr.nodelay(1)
+                for t in TurnSequence(q[0]):
+                    self.cube.apply_turn(t)
+                    self.printcube(scr)
+                    curses.napms(100)
+                    scr.getch()
+                scr.nodelay(0)
+        elif command == 'sexy':
+            self.cube.apply("R U R' U'")
+        elif command == 'scramble':
+            scr.addstr(0, 0, str(self.cube.scramble()))
+        elif command == 'solved?':
+            scr.addstr(0, 0, str(self.cube.is_solved()))
+        elif command == 'exit':
+            self.exit()
+        elif command == 'help':
+            self.help(scr)
+        else:
+            try:
+                self.cube.apply(TurnSequence(command))
+            except:
+                scr.addstr(0, 0, 'Invalid move: %s' % command)
+    
+    def exit(self):
+        raise Exception()
+    
+    def help(self, scr):
+        scr.clear()
+        try:
+            scr.addstr(0, 0, help_text)
+        except:
+            pass
+        while scr.getch() == curses.KEY_RESIZE:
+            pass
 
     def initialize(self, scr):
         if not curses.has_colors():
@@ -39,11 +107,36 @@ class Simulator:
         scr.leaveok(0)
         curses.curs_set(0)
 
+    def getln(self, scr, delimiter='\n'):
+        try:
+            curses.curs_set(2)
+        except:
+            pass
+        
+        delimiter = delimiter if isinstance(delimiter, str) else chr(delimiter)
+        curses.echo()
+        
+        ret = ''
+        while True:
+            c = chr(scr.getch())
+            if c == delimiter:
+                break
+            elif c == chr(curses.KEY_BACKSPACE):
+                ret = ret[:-1]
+            else:
+                ret += c
+        
+        try:
+            curses.curs_set(0)
+        except:
+            pass
+        
+        return str(ret)
+
     def printcube(self, scr):
         maxy, maxx = scr.getmaxyx()
         assert not (maxx < 3*self.cube.x or maxy < 3*self.cube.x)
         scr.clear()
-        scr.addstr(0, 0, str(self.cube.x))
         xinit = (maxx - 6*self.cube.x) // 2 - 1
         y = (maxy - 3*self.cube.x) // 2 - 1
         
@@ -76,4 +169,7 @@ class Simulator:
         scr.move(maxy-1, maxx-1)
 
 def simulate(cube_size = 3):
-    curses.wrapper(Simulator(cube_size))
+    try:
+        curses.wrapper(Simulator(cube_size))
+    except:
+        pass
