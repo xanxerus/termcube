@@ -15,6 +15,7 @@ but they can be disabled at startup, fixing the lag and the CPU usage.
 
 ##Usage
 For basic usage, run termcube.py in python3. The script takes care of the rest!
+
 --help will explain how to use command line arguments to skip the beginning prompts.
 
 ##Simulator Demonstration
