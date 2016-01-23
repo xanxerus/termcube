@@ -3,6 +3,7 @@
 import sys
 from argparse import ArgumentParser, Namespace, RawDescriptionHelpFormatter
 from termcube import cube, simulator, termusr, turn
+from termcube.termusr import prompt_number, prompt_int
 
 help_text=''
 
@@ -30,38 +31,6 @@ parser.add_argument('--unofficial', '-u', nargs='?', type=int, default=None, con
 
 parser.add_argument('--using-tags', '-t', action='store_true',
             help='Apply tags after each solve to sort')
-
-def prompt_number(prompt = 'Enter a number: ', default = None, condition = None):
-    """Print a given prompt string and return the user's input as a float.
-    If invalid or no input, return a given default.
-    """
-    while True:
-        print(prompt, end = '')
-        usr = input()
-        if usr:
-            try:
-                if not condition or condition(float(usr)):
-                    return float(usr)
-            except:
-                continue
-        elif default != None:
-            return default
-
-def prompt_int(prompt = 'Enter a number: ', default = None, condition = None):
-    """Print a given prompt string and return the user's input as a float.
-    If invalid or no input, return a given default.
-    """
-    while True:
-        print(prompt, end = '')
-        usr = input()
-        if usr:
-            try:
-                if not condition or condition(int(usr)):
-                    return int(usr)
-            except:
-                continue
-        elif default != None:
-            return default
 
 def prompt_args():
     print('1. Timer')
@@ -120,17 +89,19 @@ def timer(cube_size=3, inspection_time=15, using_tags=True, using_random_state=T
                                        scramble_length)
 
     #Exit
-    total, d = termusr.stats(times)
-    print("Session has ended. Statistics:")
-    statstring = 'Average of %d: %.2f\n' % (solves, total)
-    statstring += '\n'.join('%-10s %.2f' % (k, d[k]) for k in d)
-    print(statstring)
-    print('Export your times to a file?')
-    if input().startswith('y'):
-        print('Name of file to export to: ', end='')
-        filename = input()
-        termusr.export_times(filename, times)
-        print("Export successful")
+    print("Session has ended.")
+    if solves != 0:
+        total, d = termusr.stats(times)
+        print("Statistics:")
+        statstring = 'Average of %d: %.2f\n' % (solves, total)
+        statstring += '\n'.join('%-10s %.2f' % (k, d[k]) for k in d)
+        print(statstring)
+        print('Export your times to a file?')
+        if input().startswith('y'):
+            print('Name of file to export to: ', end='')
+            filename = input()
+            termusr.export_times(filename, times)
+            print("Export successful")
 
 
 if __name__=='__main__':

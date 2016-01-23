@@ -21,20 +21,55 @@ type "del" to delete that solve.
 Repeat.
 
 Available commands:
--end        - End this timer session (you will be able to export after)
+-exit       - End this timer session (you will be able to export after)
 -stat       - Display this session's statistics so far
 -merge      - Rename one tag or merge multiple together
 -export     - Export your times to a file
 -del        - Delete a solve
 -help       - Display this help text"""
 
+def prompt_number(prompt = 'Enter a number: ', default = None, condition = None):
+    """Print a given prompt string and return the user's input as a float.
+    If invalid or no input, return a given default.
+    """
+    while True:
+        print(prompt, end = '')
+        usr = input()
+        if usr:
+            try:
+                if not condition or condition(float(usr)):
+                    return float(usr)
+            except:
+                continue
+        elif default != None:
+            return default
+
+def prompt_int(prompt = 'Enter a number: ', default = None, condition = None):
+    """Print a given prompt string and return the user's input as a float.
+    If invalid or no input, return a given default.
+    """
+    while True:
+        print(prompt, end = '')
+        usr = input()
+        if usr:
+            try:
+                if not condition or condition(int(usr)):
+                    return int(usr)
+            except:
+                continue
+        elif default != None:
+            return default
+
 class Solve(namedtuple('Solve', ['time', 'penalty', 'tags', 'scramble'])):
     def totaltime(self):
         return self.time + self.penalty
 
 def mean(arr):
-    return sum(arr)/len(arr)
-
+    #~ try:
+        return sum(arr)/len(arr)
+    #~ except:
+        #~ return None
+    
 def count_down(inspection_time = 15.):
     """Count down a given number of seconds or until interrupted by
     the enter key, then return a penalty corresponding to the time past
@@ -120,7 +155,7 @@ def get_times(cube_size=3, inspection_time=15, using_tags=True, using_random_sta
 
             usr = input()
             while usr:
-                if usr == 'end':
+                if usr == 'exit':
                     return solve_number-1, solves
                 elif usr.startswith('stat'):
                     total, d = stats(solves)
@@ -145,13 +180,16 @@ def get_times(cube_size=3, inspection_time=15, using_tags=True, using_random_sta
                     export_times(filename, solves)
                     print("Export successful")
                 elif usr.startswith('del'):
-                    delete_index = prompt_number("Delete which scramble number? (default last): ", default=len(solves))-1
+                    delete_index = prompt_int("Delete which scramble number? (default last): ", 
+                                              default=solve_number-1, 
+                                              condition=lambda n: 0 < n < solve_number)-1
                     try:
                         t = solves[delete_index].totaltime()
                         del solves[delete_index]
                         print('Removed solve number %d: %.2f' % (delete_index+1, t))
+                        solve_number -= 1
                     except:
-                        print('Unable to remove solve %d' % delete_index+1)
+                        print('Unable to remove solve %d' % (delete_index+1))
                 else:
                     print(help_text)
                 usr = input()
