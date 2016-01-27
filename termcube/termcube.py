@@ -11,7 +11,7 @@ epilog_text = \
 """possible behaviours:
 timer           - cube timer
 simulator       - simulate a cube of any side length > 0
-demo-kociemba   - random-state scramble then solve a cube with  
+demo-kociemba   - random-state scramble then solve a cube with
                   Kociemba's two-phase algorithm, turn by turn
 random-turns    - Start from solved, then apply random turns until solved
 """
@@ -37,39 +37,39 @@ def prompt_args():
     print('2. Simulator Interactive Mode')
     print('3. Kociemba Two-Phase Algorithm demonstration')
     print('4. Random Turn Cube Demonstration')
-    
+
     usr = prompt_int("Select and option by its number: ", condition=lambda n: 1 <= n <= 4)
-    
+
     options = Namespace()
     if usr == 1:
         options.behaviour = 'timer'
-        
+
         options.dimension = prompt_int("Cube size (default 3): ", 3, lambda n: n > 0)
         options.inspection = prompt_number("Inspection time (default 15): ", 15.0)
         print('Use tags? (default no): ', end='')
         options.using_tags = input().startswith('y')
-        
+
         random = None
         if options.dimension == 3:
             print('Use random state scrambles? This may lag on your computer. (default yes): ', end='')
             random = not input().startswith('n')
-        
+
         if random:
             options.unofficial = None
         else:
             options.unofficial = prompt_int('How long should scrambles be? (default %d): '\
-                    % turn.TurnSequence.default_moves(options.dimension), 
+                    % turn.TurnSequence.default_moves(options.dimension),
                     default=-1)
-        
+
         return options
-    
+
     elif usr == 2:
         options.behaviour = 'simulator'
     elif usr == 3:
         options.behaviour = 'demo-kociemba'
     elif usr == 4:
         options.behaviour = 'random-turns'
-    
+
     #Set defaults
     if usr != 3:
         options.dimension = prompt_int("Choose a cube size (default 3): ", default=3, condition=lambda n: n > 1)
@@ -82,10 +82,10 @@ def prompt_args():
 
 def timer(cube_size=3, inspection_time=15, using_tags=True, using_random_state=True, scramble_length=-1):
     #Main application
-    solves, times = termusr.get_times(cube_size, 
-                                       inspection_time, 
-                                       using_tags, 
-                                       using_random_state, 
+    solves, times = termusr.get_times(cube_size,
+                                       inspection_time,
+                                       using_tags,
+                                       using_random_state,
                                        scramble_length)
 
     #Exit
@@ -103,8 +103,7 @@ def timer(cube_size=3, inspection_time=15, using_tags=True, using_random_state=T
             termusr.export_times(filename, times)
             print("Export successful")
 
-
-if __name__=='__main__':
+def main():
     print("Term Cube: Timer and Simulator")
     if len(sys.argv) <= 1:
         print("Run `termcube --help` to see how to skip these prompts")
@@ -112,17 +111,17 @@ if __name__=='__main__':
         options = prompt_args()
     else:
         options = parser.parse_args()
-    
+
     """Regarding the value of options.unofficial:
     if using a random state scramble, options.unofficial is None
     if using a random turn scramble of default length, options.unofficial is -1
     if using a random turn scramble with a specific length, option.unofficial is that length
     """
     if options.behaviour == 'timer':
-        timer(options.dimension, 
-              options.inspection, 
-              options.using_tags, 
-              using_random_state = options.unofficial == None, 
+        timer(options.dimension,
+              options.inspection,
+              options.using_tags,
+              using_random_state = options.unofficial == None,
               scramble_length = options.unofficial if options.unofficial else -1)
     elif options.behaviour == 'simulator':
         simulator.simulate(options.dimension)
@@ -132,3 +131,6 @@ if __name__=='__main__':
         cube.demo_random_turns(options.dimension)
     else:
         parser.print_help()
+
+if __name__=='__main__':
+    main()
