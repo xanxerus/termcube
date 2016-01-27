@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 import sys
 from .pykociemba import search
 from time import time
@@ -38,16 +35,3 @@ def solve_optimal(facelets, verbose = False):
             return ret
         else:
             return ret
-
-
-
-if __name__=='__main__':
-    if len(sys.argv) > 1:
-        print(solve(sys.argv[1]))
-    else:
-        while True:
-            try:
-                print(solve(input()))
-            except:
-                print('Usage: kociemba <cubestring>\nfor example:\nkociemba DRLUUBFBRBLURRLRUBLRDDFDLFUFUFFDBRDUBRUFLLFDDBFLUBLRBD')
-
