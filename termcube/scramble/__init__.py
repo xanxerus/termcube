@@ -1,8 +1,11 @@
-import time
 from ..solve.pykociemba.coordcube import CoordCube, getPruning
 from ..solve.pykociemba.cubiecube import CubieCube
 from ..turn import TurnSequence
+
 from random import randrange, shuffle
+from threading import Thread
+from time import time
+
 ax_to_s = ["U", "R", "F", "D", "L", "B"]
 po_to_s = [None, " ", "2 ", "' "]
 
@@ -43,7 +46,7 @@ def _attemptScramble(maxDepth = 24, timeOut = 1000, useSeparator = False):
     n = 0
     busy = False
     depthPhase1 = 1
-    tStart = time.time()
+    tStart = time()
 
     #~ print("twist %d flip %d parity %d FRtoBR %d URFtoDLF %d URtoUL %d UBtoDF %d" %\
         #~ (twist[0], flip[0], parity[0], FRtoBR[0], URFtoDLF[0], URtoUL[0], UBtoDF[0]), end='')
@@ -214,7 +217,7 @@ def _attemptScramble(maxDepth = 24, timeOut = 1000, useSeparator = False):
                         ax[n] += 1
                         if ax[n] > 5:
 
-                            if timeOut > 0 and time.time() - tStart > timeOut:
+                            if timeOut > 0 and time() - tStart > timeOut:
                                 return "Error 8"
 
                             if n == 0:

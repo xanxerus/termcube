@@ -1,4 +1,4 @@
-from random import randrange, choice
+from random import choice, randrange
 
 class Turn():
     """Represent an arbitrary Turn with a given face, direction, and

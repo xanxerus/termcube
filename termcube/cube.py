@@ -1,10 +1,11 @@
-from .turn import Turn, TurnSequence
-from time import time, sleep
-from sys import stderr
-from threading import Thread
 from . import scramble
-from queue import Queue
 from . import solve
+from .turn import Turn, TurnSequence
+
+from queue import Queue
+from sys import stderr
+from time import sleep, time
+from threading import Thread
 
 help_text = \
 """Term Cube Simulator Interactive Mode
