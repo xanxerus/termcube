@@ -28,9 +28,9 @@ Available commands:
 -exit       - Exit interactive mode (change cube)
 -help       - Access this help text"""
 
-class Simulator:
+class Simulator(Cube):
     def __init__(self, cube_size = 3):
-        self.cube = Cube(cube_size)
+        super(Simulator, self).__init__(cube_size)
     
     def __call__(self, scr):
         self.initialize(scr)
@@ -53,37 +53,37 @@ class Simulator:
                         t = Turn(l)
                     if m == u:
                         t = t.inverse()
-                    self.cube.apply(t)
+                    self.apply(t)
 
     def command(self, scr, command):
         if command == 'reset':
-            self.cube.reset()
+            self.reset()
         elif command == 'solve':
-            q = self.cube.two_phase_solution()
+            q = self.two_phase_solution()
             scr.addstr(0, 0, str(q[0]))
             scr.addstr(1, 0, 'Solve time: %.2f seconds' % q[1])
             scr.addstr(2, 0, 'Apply this solution? (y/n): ')
             if chr(scr.getch()) == 'y':
                 scr.nodelay(1)
                 for t in TurnSequence(q[0]):
-                    self.cube.apply_turn(t)
+                    self.apply_turn(t)
                     self.printcube(scr)
                     curses.napms(100)
                     scr.getch()
                 scr.nodelay(0)
         elif command == 'sexy':
-            self.cube.apply("R U R' U'")
+            self.apply("R U R' U'")
         elif command == 'scramble':
-            scr.addstr(0, 0, str(self.cube.scramble()))
+            scr.addstr(0, 0, str(self.scramble()))
         elif command == 'solved?':
-            scr.addstr(0, 0, str(self.cube.is_solved()))
+            scr.addstr(0, 0, str(self.is_solved()))
         elif command == 'exit':
             self.exit()
         elif command == 'help':
             self.help(scr)
         else:
             try:
-                self.cube.apply(TurnSequence(command))
+                self.apply(TurnSequence(command))
             except:
                 scr.addstr(0, 0, 'Invalid move: %s' % command)
     
@@ -141,33 +141,33 @@ class Simulator:
 
     def printcube(self, scr):
         maxy, maxx = scr.getmaxyx()
-        assert not (maxx < 3*self.cube.x or maxy < 3*self.cube.x)
+        assert not (maxx < 3*self.x or maxy < 3*self.x)
         scr.clear()
-        xinit = (maxx - 6*self.cube.x) // 2 - 1
-        y = (maxy - 3*self.cube.x) // 2 - 1
+        xinit = (maxx - 6*self.x) // 2 - 1
+        y = (maxy - 3*self.x) // 2 - 1
         
-        for r in self.cube.faces['U']:
-            x = xinit + self.cube.x*2
+        for r in self.faces['U']:
+            x = xinit + self.x*2
             for c in r:
                 scr.addstr(y, x, '  ', curses.color_pair(ord(c)-60))
                 x += 2
             y += 1
         
-        for r in range(self.cube.x):
+        for r in range(self.x):
             x = xinit
-            for c in self.cube.faces['L'][r]:
+            for c in self.faces['L'][r]:
                 scr.addstr(y, x, '  ', curses.color_pair(ord(c)-60))
                 x += 2
-            for c in range(self.cube.x):
-                scr.addstr(y, x, '  ', curses.color_pair(ord(self.cube.faces['F'][r][c])-60))
+            for c in range(self.x):
+                scr.addstr(y, x, '  ', curses.color_pair(ord(self.faces['F'][r][c])-60))
                 x += 2
-            for c in self.cube.faces['R'][r]:
+            for c in self.faces['R'][r]:
                 scr.addstr(y, x, '  ', curses.color_pair(ord(c)-60))
                 x += 2
             y += 1
 
-        for r in self.cube.faces['D'] + self.cube.faces['B']:
-            x = xinit + self.cube.x*2
+        for r in self.faces['D'] + self.faces['B']:
+            x = xinit + self.x*2
             for c in r:
                 scr.addstr(y, x, '  ', curses.color_pair(ord(c)-60))
                 x += 2
