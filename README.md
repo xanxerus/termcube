@@ -13,6 +13,11 @@ in the background, making them available almost immediately after
 initialization. On slower computers, this might not be the case, 
 but they can be disabled at startup, fixing the lag and the CPU usage.
 
+##Usage
+For basic usage, run termcube.py in python3. The script takes care of the rest!
+
+--help will explain how to use command line arguments to skip the beginning prompts.
+
 ##Simulator Demonstration
 ```python
 >>> from cube import Cube
@@ -67,6 +72,23 @@ simulator       - simulate a cube of amy side length > 0
 demo-kociemba   - random-state scramble then solve a cube with  
                   Kociemba's two-phase algorithm, turn by turn
 random-turns    - Start from solved, then apply random turns until solved
+
+##simulator.py
+This module has one class (a cube simulator) and one function that uses
+that class to simulate a cube using python's curses module.
+
+Press F, R, U, L, D, B, M, E, S, X, Y, or Z to turn the cube.
+Hold shift and press to do the reverse of that turn.
+
+Press : to initiate a command or type a longer string of notation.
+
+Available commands:
+-reset      - Reset the cube to a solved position
+-solve      - Display a two-phase solution
+-sexy       - Apply the sexy move (R U R' U')
+-scramble   - Print a scramble and apply it
+-exit       - Exit interactive mode (change cube)
+-help       - Access this help text"""
 
 ##turn.py
 This module has two classes, Turn and TurnSequence. A Turn represents a 

@@ -534,7 +534,7 @@ class CubieCube(object):
         -3: Flip error: One edge has to be flipped
         -4: Not all corners exist exactly once
         -5: Twist error: One corner has to be twisted
-        -6: Parity error: Two corners ore two edges have to be exchanged
+        -6: Parity error: Two corners or two edges have to be exchanged
         """
 
         sum = 0
@@ -563,7 +563,7 @@ class CubieCube(object):
         if sum % 3 != 0:
             return -5   # twisted corner
 
-        if (self.edgeParity() ^ self.cornerParity()) != 0:
+        if self.edgeParity() != self.cornerParity():
             return -6   # parity error
 
         return 0    # cube ok

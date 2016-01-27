@@ -1,68 +1,36 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import sys
 from argparse import ArgumentParser, Namespace, RawDescriptionHelpFormatter
-from sys import argv
-from termcube import cube, termusr, turn 
+from termcube import cube, simulator, termusr, turn
+from termcube.termusr import prompt_number, prompt_int
+
+help_text=''
 
 epilog_text = \
 """possible behaviours:
 timer           - cube timer
-simulator       - simulate a cube of amy side length > 0
+simulator       - simulate a cube of any side length > 0
 demo-kociemba   - random-state scramble then solve a cube with  
                   Kociemba's two-phase algorithm, turn by turn
 random-turns    - Start from solved, then apply random turns until solved
 """
 
-def prompt_number(prompt = 'Enter a number: ', default = None, condition = None):
-    """Print a given prompt string and return the user's input as a float.
-    If invalid or no input, return a given default.
-    """
-    while True:
-        print(prompt, end = '')
-        usr = input()
-        if usr:
-            try:
-                if not condition or condition(float(usr)):
-                    return float(usr)
-            except:
-                continue
-        elif default != None:
-            return default
+parser = ArgumentParser(epilog=epilog_text, formatter_class=RawDescriptionHelpFormatter)
+parser.add_argument('behaviour', nargs='?', default='timer', type=str,
+            help='timer, simulator, demo-kociemba, random-turns')
 
-def prompt_int(prompt = 'Enter a number: ', default = None, condition = None):
-    """Print a given prompt string and return the user's input as a float.
-    If invalid or no input, return a given default.
-    """
-    while True:
-        print(prompt, end = '')
-        usr = input()
-        if usr:
-            try:
-                if not condition or condition(int(usr)):
-                    return int(usr)
-            except:
-                continue
-        elif default != None:
-            return default
+parser.add_argument('dimension', nargs='?', default=3, type=int,
+            help='Cube side length (default 3)')
 
-def parse_args():
-    parser = ArgumentParser(epilog=epilog_text, formatter_class=RawDescriptionHelpFormatter)
-    parser.add_argument('behaviour', nargs='?', default='timer', type=str,
-                help='timer, simulator, demo-kociemba, random-turns')
+parser.add_argument('--inspection', '-i', default=15.0, type=float,
+            help='The number of seconds to inspect (default 15)')
 
-    parser.add_argument('dimension', nargs='?', default=3, type=int,
-                help='Cube side length (default 3)')
+parser.add_argument('--unofficial', '-u', nargs='?', type=int, default=None, const=-1,
+            help='Use a low CPU alternative to official style scrambles')
 
-    parser.add_argument('--inspection', '-i', default=15.0, type=float,
-                help='The number of seconds to inspect (default 15)')
-
-    parser.add_argument('--unofficial', '-u', nargs='?', type=int, default=None, const=-1,
-                help='Use a low CPU alternative to official style scrambles')
-
-    parser.add_argument('--using-tags', '-t', action='store_true',
-                help='Apply tags after each solve to sort')
-    
-    return parser.parse_args()
+parser.add_argument('--using-tags', '-t', action='store_true',
+            help='Apply tags after each solve to sort')
 
 def prompt_args():
     print('1. Timer')
@@ -103,7 +71,10 @@ def prompt_args():
         options.behaviour = 'random-turns'
     
     #Set defaults
-    options.dimension = 3
+    if usr != 3:
+        options.dimension = prompt_int("Choose a cube size (default 3): ", default=3, condition=lambda n: n > 1)
+    else:
+        options.dimension = 3
     options.inspection = 15.0
     options.unofficial = -1
     options.using_tags = False
@@ -118,34 +89,35 @@ def timer(cube_size=3, inspection_time=15, using_tags=True, using_random_state=T
                                        scramble_length)
 
     #Exit
-    total, d = termusr.stats(times)
-    print("Session has ended. Statistics:")
-    statstring = 'Average of %d: %.2f\n' % (solves, total)
-    statstring += '\n'.join('%-10s %.2f' % (k, d[k]) for k in d)
-    print(statstring)
-    print('Export your times to a file?')
-    if input().startswith('y'):
-        print('Name of file to export to: ', end='')
-        filename = input()
-        termusr.export_times(filename, times)
-        print("Export successful")
+    print("Session has ended.")
+    if solves != 0:
+        total, d = termusr.stats(times)
+        print("Statistics:")
+        statstring = 'Average of %d: %.2f\n' % (solves, total)
+        statstring += '\n'.join('%-10s %.2f' % (k, d[k]) for k in d)
+        print(statstring)
+        print('Export your times to a file?')
+        if input().startswith('y'):
+            print('Name of file to export to: ', end='')
+            filename = input()
+            termusr.export_times(filename, times)
+            print("Export successful")
 
 
 if __name__=='__main__':
     print("Term Cube: Timer and Simulator")
-    if len(argv) <= 1:
+    if len(sys.argv) <= 1:
         print("Run `termcube --help` to see how to skip these prompts")
         print()
         options = prompt_args()
     else:
-        options = parse_args()
+        options = parser.parse_args()
     
     """Regarding the value of options.unofficial:
     if using a random state scramble, options.unofficial is None
     if using a random turn scramble of default length, options.unofficial is -1
     if using a random turn scramble with a specific length, option.unofficial is that length
     """
-    
     if options.behaviour == 'timer':
         timer(options.dimension, 
               options.inspection, 
@@ -153,8 +125,10 @@ if __name__=='__main__':
               using_random_state = options.unofficial == None, 
               scramble_length = options.unofficial if options.unofficial else -1)
     elif options.behaviour == 'simulator':
-        cube.Cube(options.dimension).interact()
+        simulator.simulate(options.dimension)
     elif options.behaviour == 'demo-kociemba':
         cube.demo_kociemba();
     elif options.behaviour == 'random-turns':
         cube.demo_random_turns(options.dimension)
+    else:
+        parser.print_help()
