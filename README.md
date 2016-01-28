@@ -13,6 +13,16 @@ in the background, making them available almost immediately after
 initialization. On slower computers, this might not be the case, 
 but they can be disabled at startup, fixing the lag and the CPU usage.
 
+##Setup
+This module uses `setuptools` to hopefully make things easier. Recommended workflow
+
+1. Set up a virtualenv (protip: use `virtualenvwrapper`)
+1. Activate said virtualenv
+1. Navigate to the top of this repo
+1. Assuming you already have `setuptools` installed, run `python setup.py develop`.
+
+This will create symlinks from this repo to a python package, such that other programs can use the `termcube` module. This procedure also utilizes the entrypoint feature of `setuptools`, creating a global script `termcube` with various features.
+
 ##Usage
 For basic usage, run termcube.py in python3. The script takes care of the rest!
 
