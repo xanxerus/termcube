@@ -39,9 +39,9 @@ class Simulator(Cube):
             self.printcube(scr)
             m = chr(scr.getch())
             
-            if m == ':':
-                scr.addstr(0, 0, ':')
-                self.command(scr, self.getln(scr).strip())
+            if m in ':1234567890':
+                scr.addstr(0, 0, m)
+                self.command(scr, m + self.getln(scr).strip())
             else:
                 u = m.upper()
                 l = m.lower()
@@ -56,9 +56,9 @@ class Simulator(Cube):
                     self.apply(t)
 
     def command(self, scr, command):
-        if command == 'reset':
+        if command == ':reset':
             self.reset()
-        elif command == 'solve':
+        elif command == ':solve':
             q = self.two_phase_solution()
             scr.addstr(0, 0, str(q[0]))
             scr.addstr(1, 0, 'Solve time: %.2f seconds' % q[1])
@@ -71,15 +71,15 @@ class Simulator(Cube):
                     curses.napms(100)
                     scr.getch()
                 scr.nodelay(0)
-        elif command == 'sexy':
+        elif command == ':sexy':
             self.apply("R U R' U'")
-        elif command == 'scramble':
+        elif command == ':scramble':
             scr.addstr(0, 0, str(self.scramble()))
-        elif command == 'solved?':
+        elif command == ':solved?':
             scr.addstr(0, 0, str(self.is_solved()))
-        elif command == 'exit':
+        elif command == ':exit':
             self.exit()
-        elif command == 'help':
+        elif command == ':help':
             self.help(scr)
         else:
             try:
@@ -137,6 +137,7 @@ class Simulator(Cube):
             curses.curs_set(0)
         except:
             pass
+        curses.noecho()
         
         return str(ret)
 
