@@ -100,16 +100,17 @@ class Simulator(Cube):
             pass
 
     def initialize(self, scr):
+        self.scr = scr
         if not curses.has_colors():
             print('Terminal cannot display color. So sad. Exiting.', file=sys.stderr)
             sys.exit(1)
         
-        curses.init_pair(ord('F')-60, curses.COLOR_CYAN, curses.COLOR_WHITE)
-        curses.init_pair(ord('R')-60, curses.COLOR_CYAN, curses.COLOR_RED)
-        curses.init_pair(ord('U')-60, curses.COLOR_CYAN, curses.COLOR_BLUE)
-        curses.init_pair(ord('L')-60, curses.COLOR_CYAN, curses.COLOR_MAGENTA)
-        curses.init_pair(ord('D')-60, curses.COLOR_CYAN, curses.COLOR_GREEN)
-        curses.init_pair(ord('B')-60, curses.COLOR_CYAN, curses.COLOR_YELLOW)
+        curses.init_pair(ord('F')-60, curses.COLOR_WHITE, curses.COLOR_WHITE)
+        curses.init_pair(ord('R')-60, curses.COLOR_WHITE, curses.COLOR_RED)
+        curses.init_pair(ord('U')-60, curses.COLOR_WHITE, curses.COLOR_BLUE)
+        curses.init_pair(ord('L')-60, curses.COLOR_WHITE, curses.COLOR_MAGENTA)
+        curses.init_pair(ord('D')-60, curses.COLOR_WHITE, curses.COLOR_GREEN)
+        curses.init_pair(ord('B')-60, curses.COLOR_WHITE, curses.COLOR_YELLOW)
         scr.leaveok(0)
         curses.curs_set(0)
 
@@ -141,24 +142,24 @@ class Simulator(Cube):
 
     def printcube(self, scr):
         maxy, maxx = scr.getmaxyx()
-        assert not (maxx < 3*self.x or maxy < 3*self.x)
+        assert not (maxx < 3*self.size or maxy < 3*self.size)
         scr.clear()
-        xinit = (maxx - 6*self.x) // 2 - 1
-        y = (maxy - 3*self.x) // 2 - 1
+        xinit = (maxx - 6*self.size) // 2 - 1
+        y = (maxy - 3*self.size) // 2 - 1
         
         for r in self.faces['U']:
-            x = xinit + self.x*2
+            x = xinit + self.size*2
             for c in r:
                 scr.addstr(y, x, '  ', curses.color_pair(ord(c)-60))
                 x += 2
             y += 1
         
-        for r in range(self.x):
+        for r in range(self.size):
             x = xinit
             for c in self.faces['L'][r]:
                 scr.addstr(y, x, '  ', curses.color_pair(ord(c)-60))
                 x += 2
-            for c in range(self.x):
+            for c in range(self.size):
                 scr.addstr(y, x, '  ', curses.color_pair(ord(self.faces['F'][r][c])-60))
                 x += 2
             for c in self.faces['R'][r]:
@@ -167,7 +168,7 @@ class Simulator(Cube):
             y += 1
 
         for r in self.faces['D'] + self.faces['B']:
-            x = xinit + self.x*2
+            x = xinit + self.size*2
             for c in r:
                 scr.addstr(y, x, '  ', curses.color_pair(ord(c)-60))
                 x += 2

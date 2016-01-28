@@ -55,19 +55,19 @@ class Cube:
                'L': 'o',
                'B': 'y'}
 
-    def __init__(self, x = 3, wca = None):
+    def __init__(self, size = 3, wca = None):
         """Initialize a Cube with a given dimension in a solved state."""
-        self.x = x
+        self.size = size
         self.reset()
 
     def reset(self):
         """Initialize all sides to unique solid colors."""
-        self.faces = {'F' : [['F']*self.x for q in range(self.x)],
-                      'R' : [['R']*self.x for q in range(self.x)],
-                      'U' : [['U']*self.x for q in range(self.x)],
-                      'D' : [['D']*self.x for q in range(self.x)],
-                      'L' : [['L']*self.x for q in range(self.x)],
-                      'B' : [['B']*self.x for q in range(self.x)]}
+        self.faces = {'F' : [['F']*self.size for q in range(self.size)],
+                      'R' : [['R']*self.size for q in range(self.size)],
+                      'U' : [['U']*self.size for q in range(self.size)],
+                      'D' : [['D']*self.size for q in range(self.size)],
+                      'L' : [['L']*self.size for q in range(self.size)],
+                      'B' : [['B']*self.size for q in range(self.size)]}
 
     def scramble(self, random_state=True, moves=-1):
         """Generate, apply, and return a scramble."""
@@ -77,12 +77,12 @@ class Cube:
 
     def get_scramble(self, random_state=True, moves=-1):
         """Generate and return a scramble without applying."""
-        if random_state and self.x == 3:
+        if random_state and self.size == 3:
             return scramble.scramble()
         elif moves > 1:
-            return TurnSequence.get_scramble(self.x, moves)
+            return TurnSequence.get_scramble(self.size, moves)
         else:
-            return TurnSequence.get_scramble(self.x)
+            return TurnSequence.get_scramble(self.size)
 
     def apply(self, seq):
         """Apply a given TurnSequence to this Cube. If a str was given,
@@ -120,42 +120,42 @@ class Cube:
             if turn.move in Turn.faces:
                 self.faces[turn.move] = rotate_cw(self.faces[turn.move])
                 for g in range(1, turn.depth+1):
-                    for q in range(self.x):
+                    for q in range(self.size):
                         if turn.move == 'F':
                             (self.faces['D'][g-1][q],
                             self.faces['R'][-q-1][g-1],
-                            self.faces['U'][self.x-g][-q-1],
-                            self.faces['L'][q][self.x-g]) = \
+                            self.faces['U'][self.size-g][-q-1],
+                            self.faces['L'][q][self.size-g]) = \
                             (self.faces['R'][-q-1][g-1],
-                            self.faces['U'][self.x-g][-q-1],
-                            self.faces['L'][q][self.x-g],
+                            self.faces['U'][self.size-g][-q-1],
+                            self.faces['L'][q][self.size-g],
                             self.faces['D'][g-1][q])
                         elif turn.move == 'U':
                             (self.faces['F'][g-1][q],
                             self.faces['R'][g-1][q],
-                            self.faces['B'][self.x-g][-q-1],
+                            self.faces['B'][self.size-g][-q-1],
                             self.faces['L'][g-1][q]) = \
                             (self.faces['R'][g-1][q],
-                            self.faces['B'][self.x-g][-q-1],
+                            self.faces['B'][self.size-g][-q-1],
                             self.faces['L'][g-1][q],
                             self.faces['F'][g-1][q])
                         elif turn.move == 'D':
                             (self.faces['B'][g-1][-q-1],
-                            self.faces['R'][self.x-g][q],
-                            self.faces['F'][self.x-g][q],
-                            self.faces['L'][self.x-g][q]) = \
-                            (self.faces['R'][self.x-g][q],
-                            self.faces['F'][self.x-g][q],
-                            self.faces['L'][self.x-g][q],
+                            self.faces['R'][self.size-g][q],
+                            self.faces['F'][self.size-g][q],
+                            self.faces['L'][self.size-g][q]) = \
+                            (self.faces['R'][self.size-g][q],
+                            self.faces['F'][self.size-g][q],
+                            self.faces['L'][self.size-g][q],
                             self.faces['B'][g-1][-q-1])
                         elif turn.move == 'B':
                             (self.faces['L'][q][g-1],
                             self.faces['U'][g-1][-q-1],
-                            self.faces['R'][-q-1][self.x-g],
-                            self.faces['D'][self.x-g][q]) = \
+                            self.faces['R'][-q-1][self.size-g],
+                            self.faces['D'][self.size-g][q]) = \
                             (self.faces['U'][g-1][-q-1],
-                            self.faces['R'][-q-1][self.x-g],
-                            self.faces['D'][self.x-g][q],
+                            self.faces['R'][-q-1][self.size-g],
+                            self.faces['D'][self.size-g][q],
                             self.faces['L'][q][g-1])
                         elif turn.move == 'L':
                             (self.faces['B'][q][g-1],
@@ -167,14 +167,14 @@ class Cube:
                             self.faces['U'][q][g-1],
                             self.faces['B'][q][g-1])
                         elif turn.move == 'R':
-                            (self.faces['B'][q][self.x-g],
-                            self.faces['U'][q][self.x-g],
-                            self.faces['F'][q][self.x-g],
-                            self.faces['D'][q][self.x-g]) = \
-                            (self.faces['U'][q][self.x-g],
-                            self.faces['F'][q][self.x-g],
-                            self.faces['D'][q][self.x-g],
-                            self.faces['B'][q][self.x-g])
+                            (self.faces['B'][q][self.size-g],
+                            self.faces['U'][q][self.size-g],
+                            self.faces['F'][q][self.size-g],
+                            self.faces['D'][q][self.size-g]) = \
+                            (self.faces['U'][q][self.size-g],
+                            self.faces['F'][q][self.size-g],
+                            self.faces['D'][q][self.size-g],
+                            self.faces['B'][q][self.size-g])
         return self
 
     def __eq__(self, other):
@@ -183,24 +183,24 @@ class Cube:
 
     def __str__(self):
         """Return the type of cube and an ANSI color representation."""
-        ret = '{0}x{0}x{0} Cube'.format(self.x) + '\n'
+        ret = '{0}x{0}x{0} Cube'.format(self.size) + '\n'
         for r in self.faces['U']:
-            ret += '  '*self.x
+            ret += '  '*self.size
             for c in r:
                 ret += Cube.sticker[c]
             ret += '\n'
 
-        for r in range(self.x):
+        for r in range(self.size):
             for c in self.faces['L'][r]:
                 ret += Cube.sticker[c]
-            for c in range(self.x):
+            for c in range(self.size):
                 ret += Cube.sticker[self.faces['F'][r][c]]
             for c in self.faces['R'][r]:
                 ret += Cube.sticker[c]
             ret += '\n'
 
         for r in self.faces['D'] + self.faces['B']:
-            ret += '  '*self.x
+            ret += '  '*self.size
             for c in r:
                 ret += Cube.sticker[c]
             ret += '\n'
@@ -225,7 +225,7 @@ class Cube:
     def two_phase_solution(self):
         """Find a solution using Kociemba's two phase algoithm."""
         try:
-            assert self.x == 3
+            assert self.size == 3
         except:
             print('Cube must be a 3x3x3 to find a two phase solution', file=stderr)
         return solve.solve(self.kociemba_str())
@@ -233,7 +233,7 @@ class Cube:
     def optimal_solution(self, verbose = False):
         """Attempt to find an optimal solution using two-phase. Slow"""
         try:
-            assert self.x == 3
+            assert self.size == 3
         except:
             print('Cube must be a 3x3x3 to find a two phase solution', file=stderr)
         return solve.solve_optimal_from_bottom(self.kociemba_str(), verbose)
@@ -263,7 +263,7 @@ class Cube:
             for c in r:
                 facelet_colors += Cube.color[c]
 
-        return 'http://cube.crider.co.uk/visualcube.php?fmt=gif&pzl=%s&fc=%s' % (self.x, facelet_colors)
+        return 'http://cube.crider.co.uk/visualcube.php?fmt=gif&pzl=%s&fc=%s' % (self.size, facelet_colors)
 
     def interact(self):
         """Read, evaluate, print, and loop commands. See help text."""
@@ -311,8 +311,8 @@ class Cube:
                     print('Invalid move: %s' % usr)
 
 class ScrambleGenerator():
-    def __init__(self, x = 3, capacity = 10, random_state = True, moves = -1):
-        self.cube = Cube(x)
+    def __init__(self, size = 3, capacity = 10, random_state = True, moves = -1):
+        self.cube = Cube(size)
         self.queue = Queue(max((capacity, 0)))
         self.random_state = random_state
         self.moves = moves

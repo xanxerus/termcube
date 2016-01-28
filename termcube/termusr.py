@@ -142,7 +142,7 @@ def get_times(cube_size=3, inspection_time=15, using_tags=True, using_random_sta
     solves = []
     cube = Cube(cube_size)
     solve_number = 1
-    with ScrambleGenerator(x=cube_size, random_state=using_random_state, moves=scramble_length) as scrambler:
+    with ScrambleGenerator(size=cube_size, random_state=using_random_state, moves=scramble_length) as scrambler:
         while True:
             cube.reset()
             cube.apply('x')
