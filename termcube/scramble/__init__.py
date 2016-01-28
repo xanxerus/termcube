@@ -1,6 +1,6 @@
-from .pykociemba.coordcube import CoordCube, getPruning
-from .pykociemba.cubiecube import CubieCube
-from .turn import TurnSequence
+from ..solve.pykociemba.coordcube import CoordCube, getPruning
+from ..solve.pykociemba.cubiecube import CubieCube
+from ..turn import TurnSequence
 
 from random import randrange, shuffle
 from threading import Thread

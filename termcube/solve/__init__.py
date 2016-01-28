@@ -1,5 +1,5 @@
 from .pykociemba import search
-from .turn import TurnSequence
+from ..turn import TurnSequence
 
 from time import time
 

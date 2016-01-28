@@ -26,14 +26,14 @@ class Turn():
         elif any(s in Turn.lower_faces for s in move) or 'w' in move:
             move = move.replace('w', '')
             move = move.upper()
-            
+
             face = list(set(move) & set(Turn.moves))[0]
             suffix = move[move.index(face)+1:]
             prefix = move[:move.index(face)]
-            
+
             if suffix == "2'" or suffix == "'2":
                 suffix = '2'
-            
+
             self.move = face
             self.direction = suffix if suffix in Turn.directions else ''
             self.depth = int(prefix) if len(prefix) else 2
