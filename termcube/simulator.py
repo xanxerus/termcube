@@ -29,11 +29,16 @@ Available commands:
 -help       - Access this help text"""
 
 class Simulator(Cube):
-    def __init__(self, cube_size = 3):
-        super(Simulator, self).__init__(cube_size)
+    def __init__(self, size = 3):
+        super(Simulator, self).__init__(size)
     
     def __call__(self, scr):
         self.initialize(scr)
+        
+        if noncurses:
+            self.interact()
+            return
+        
         m = ''
         while m != chr(27):
             self.printcube(scr)
@@ -75,10 +80,8 @@ class Simulator(Cube):
             self.apply("R U R' U'")
         elif command == ':scramble':
             scr.addstr(0, 0, str(self.scramble()))
-        elif command == ':solved?':
-            scr.addstr(0, 0, str(self.is_solved()))
         elif command == ':exit':
-            self.exit()
+            sys.exit(0)
         elif command == ':help':
             self.help(scr)
         else:
@@ -86,9 +89,6 @@ class Simulator(Cube):
                 self.apply(TurnSequence(command))
             except:
                 scr.addstr(0, 0, 'Invalid move: %s' % command)
-    
-    def exit(self):
-        raise Exception()
     
     def help(self, scr):
         scr.clear()
@@ -102,31 +102,42 @@ class Simulator(Cube):
     def initialize(self, scr):
         self.scr = scr
         if not curses.has_colors():
-            print('Terminal cannot display color. So sad. Exiting.', file=sys.stderr)
-            sys.exit(1)
+            noncurses = True
+            return
         
-        curses.init_pair(ord('F')-60, curses.COLOR_WHITE, curses.COLOR_WHITE)
-        curses.init_pair(ord('R')-60, curses.COLOR_WHITE, curses.COLOR_RED)
-        curses.init_pair(ord('U')-60, curses.COLOR_WHITE, curses.COLOR_BLUE)
-        curses.init_pair(ord('L')-60, curses.COLOR_WHITE, curses.COLOR_MAGENTA)
-        curses.init_pair(ord('D')-60, curses.COLOR_WHITE, curses.COLOR_GREEN)
-        curses.init_pair(ord('B')-60, curses.COLOR_WHITE, curses.COLOR_YELLOW)
+        curses.init_pair(ord('F') - 60, curses.COLOR_WHITE, curses.COLOR_WHITE)
+        curses.init_pair(ord('R') - 60, curses.COLOR_WHITE, curses.COLOR_RED)
+        curses.init_pair(ord('U') - 60, curses.COLOR_WHITE, curses.COLOR_BLUE)
+        curses.init_pair(ord('L') - 60, curses.COLOR_WHITE, curses.COLOR_MAGENTA)
+        curses.init_pair(ord('D') - 60, curses.COLOR_WHITE, curses.COLOR_GREEN)
+        curses.init_pair(ord('B') - 60, curses.COLOR_WHITE, curses.COLOR_YELLOW)
         scr.leaveok(0)
-        curses.curs_set(0)
+        curses.noecho()
+        
+        try:
+            curses.curs_set(0)
+        except:
+            pass
 
-    def getln(self, scr, delimiter='\n'):
+    def getln(self, scr, delimiter = '\n'):
         try:
             curses.curs_set(2)
         except:
             pass
         
-        delimiter = delimiter if isinstance(delimiter, str) else chr(delimiter)
         curses.echo()
+        
+        if hasattr(delimiter, '__call__'):
+            exitcondition = delimiter
+        elif isinstance(delimiter, str):
+            exitcondition = lambda c : c == delimiter
+        else:
+            exitcondition = lambda c : c == chr(delimiter)
         
         ret = ''
         while True:
             c = chr(scr.getch())
-            if c == delimiter:
+            if exitcondition(c):
                 break
             elif c == chr(curses.KEY_BACKSPACE):
                 ret = ret[:-1]
@@ -139,11 +150,12 @@ class Simulator(Cube):
             pass
         curses.noecho()
         
-        return str(ret)
+        return ret
 
     def printcube(self, scr):
         maxy, maxx = scr.getmaxyx()
-        assert not (maxx < 3*self.size or maxy < 3*self.size)
+        assert not (maxx <= 3*self.size or maxy <= 3*self.size)
+
         scr.clear()
         xinit = (maxx - 6*self.size) // 2 - 1
         y = (maxy - 3*self.size) // 2 - 1
@@ -151,36 +163,30 @@ class Simulator(Cube):
         for r in self.faces['U']:
             x = xinit + self.size*2
             for c in r:
-                scr.addstr(y, x, '  ', curses.color_pair(ord(c)-60))
+                scr.addstr(y, x, '  ', curses.color_pair(ord(c) - 60))
                 x += 2
             y += 1
         
         for r in range(self.size):
             x = xinit
             for c in self.faces['L'][r]:
-                scr.addstr(y, x, '  ', curses.color_pair(ord(c)-60))
+                scr.addstr(y, x, '  ', curses.color_pair(ord(c) - 60))
                 x += 2
-            for c in range(self.size):
-                scr.addstr(y, x, '  ', curses.color_pair(ord(self.faces['F'][r][c])-60))
+            for c in self.faces['F'][r]:
+                scr.addstr(y, x, '  ', curses.color_pair(ord(c) - 60))
                 x += 2
             for c in self.faces['R'][r]:
-                scr.addstr(y, x, '  ', curses.color_pair(ord(c)-60))
+                scr.addstr(y, x, '  ', curses.color_pair(ord(c) - 60))
                 x += 2
             y += 1
 
         for r in self.faces['D'] + self.faces['B']:
             x = xinit + self.size*2
             for c in r:
-                scr.addstr(y, x, '  ', curses.color_pair(ord(c)-60))
+                scr.addstr(y, x, '  ', curses.color_pair(ord(c) - 60))
                 x += 2
             y += 1
         scr.move(maxy-1, maxx-1)
 
-def simulate(cube_size = 3):
-    if noncurses:
-        Cube(cube_size).interact()
-    else:
-        try:
-            curses.wrapper(Simulator(cube_size))
-        except:
-            pass
+def simulate(size = 3):
+    curses.wrapper(Simulator(size))

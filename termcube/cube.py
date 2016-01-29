@@ -15,10 +15,8 @@ Manipulate a virtual cube using cube notation
 Available commands:
 -reset      - Reset the cube to a solved position
 -solve      - Display a two-phase solution
--optimal    - Display the optimal solution (will take a long time)
 -sexy       - Apply the sexy move (R U R' U')
 -scramble   - Print a scramble apply it
--solved?    - Print if the cube is solved
 -exit       - Exit interactive mode (change cube)
 -help       - Access this help text"""
 
@@ -32,7 +30,7 @@ def rotate_ccw(face):
 
 def rotate_2(face):
     """Returns a 180 degree rotated version of a given 2D list"""
-    return rotate_cw(rotate_cw(face))
+    return [a[::-1] for a in face[::-1]]
 
 
 class Cube:
@@ -55,40 +53,38 @@ class Cube:
                'L': 'o',
                'B': 'y'}
 
-    def __init__(self, size = 3, wca = None):
+    def __init__(self, size = 3):
         """Initialize a Cube with a given dimension in a solved state."""
         self.size = size
         self.reset()
 
     def reset(self):
         """Initialize all sides to unique solid colors."""
-        self.faces = {'F' : [['F']*self.size for q in range(self.size)],
-                      'R' : [['R']*self.size for q in range(self.size)],
-                      'U' : [['U']*self.size for q in range(self.size)],
-                      'D' : [['D']*self.size for q in range(self.size)],
-                      'L' : [['L']*self.size for q in range(self.size)],
-                      'B' : [['B']*self.size for q in range(self.size)]}
+        self.faces = dict()
+        
+        for face in 'FRULDB':
+            self.faces[face] = [[face]*self.size for q in range(self.size)]
 
-    def scramble(self, random_state=True, moves=-1):
+    def scramble(self, random = True, moves = -1):
         """Generate, apply, and return a scramble."""
-        s = self.get_scramble(random_state, moves)
+        s = self.get_scramble(random, moves)
         self.apply(s)
         return s
 
-    def get_scramble(self, random_state=True, moves=-1):
+    def get_scramble(self, random = True, moves = -1):
         """Generate and return a scramble without applying."""
-        if random_state and self.size == 3:
+        if random and self.size == 3:
             return scramble.scramble()
-        elif moves > 1:
+        elif moves is not None and moves > 1:
             return TurnSequence.get_scramble(self.size, moves)
         else:
             return TurnSequence.get_scramble(self.size)
 
-    def apply(self, seq):
+    def apply(self, sequence):
         """Apply a given TurnSequence to this Cube. If a str was given,
         convert to TurnSequence then apply.
         """
-        for turn in TurnSequence(seq):
+        for turn in TurnSequence(sequence):
             self.apply_turn(turn)
         return self
 
@@ -183,7 +179,7 @@ class Cube:
 
     def __str__(self):
         """Return the type of cube and an ANSI color representation."""
-        ret = '{0}x{0}x{0} Cube'.format(self.size) + '\n'
+        ret = ''
         for r in self.faces['U']:
             ret += '  '*self.size
             for c in r:
@@ -230,16 +226,8 @@ class Cube:
             print('Cube must be a 3x3x3 to find a two phase solution', file=stderr)
         return solve.solve(self.kociemba_str())
 
-    def optimal_solution(self, verbose = False):
-        """Attempt to find an optimal solution using two-phase. Slow"""
-        try:
-            assert self.size == 3
-        except:
-            print('Cube must be a 3x3x3 to find a two phase solution', file=stderr)
-        return solve.solve_optimal_from_bottom(self.kociemba_str(), verbose)
-
     def __repr__(self):
-        """Return the type of cube and an ANSI color representation."""
+        """Return an ANSI color representation of the cube."""
         return str(self)
 
     def is_solved(self):
@@ -283,23 +271,10 @@ class Cube:
                         self.apply(t)
                         print(self)
                         sleep(.1)
-            elif usr == 'optimal':
-                q = self.optimal_solution(verbose = True)
-                print(q[0])
-                print('Solve time: %.2f seconds' % q[1])
-                print('Apply this solution?')
-                if input().startswith('y'):
-                    for t in TurnSequence(q[0]):
-                        self.apply(t)
-                        print(self)
-                        sleep(.1)
-
             elif usr == 'sexy':
                 self.apply("R U R' U'")
             elif usr == 'scramble':
                 print(self.scramble())
-            elif usr == 'solved?':
-                print(self.is_solved())
             elif usr == 'exit':
                 break
             elif usr == 'help':
@@ -311,11 +286,11 @@ class Cube:
                     print('Invalid move: %s' % usr)
 
 class ScrambleGenerator():
-    def __init__(self, size = 3, capacity = 10, random_state = True, moves = -1):
+    def __init__(self, size = 3, random = True, length = -1, capacity = 10):
         self.cube = Cube(size)
         self.queue = Queue(max((capacity, 0)))
-        self.random_state = random_state
-        self.moves = moves
+        self.random = random
+        self.length = length
         self.thread = Thread(target=self.enqueue_scramble)
         self.stopped = False
         self.thread.start()
@@ -324,7 +299,7 @@ class ScrambleGenerator():
         """Fill a given Queue with scramble until it is either full or a given capacity has been reached"""
         while not self.stopped:
             if not self.queue.full():
-                self.queue.put(self.cube.get_scramble(self.random_state, self.moves))
+                self.queue.put(self.cube.get_scramble(self.random, self.length))
 
     def __next__(self):
         """Remove and return the next scramble in the queue"""

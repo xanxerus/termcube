@@ -73,11 +73,11 @@ class Turn():
         return Turn(self.move, self.opposite_direction(), self.depth)
 
     @staticmethod
-    def random_turn(x = 3):
+    def random_turn(size = 3):
         """Return a Turn with a random face, direction, and depth
         less than or equal to half the given cube dimension.
         """
-        return Turn(choice(Turn.faces), choice(Turn.directions), randrange(x//2)+1)
+        return Turn(choice(Turn.faces), choice(Turn.directions), randrange(size//2)+1)
 
     def __str__(self):
         """Return this turn using WCA notation."""
@@ -127,7 +127,7 @@ class TurnSequence(list):
         return map(''.join(self).replace('\'', '%27'))
 
     @staticmethod
-    def default_moves(x):
+    def default_moves(size):
         """Return the default number of moves in a scramble for a cube
         with a given dimension
         Depth   Moves
@@ -140,15 +140,15 @@ class TurnSequence(list):
         7       100
         8+      120
         """
-        if x <= 1:
+        if size <= 1:
             return 0
-        elif x <= 7:
-            return {2:11, 3:25, 4:40, 5:60, 6:80, 7:100}[x]
+        elif size <= 7:
+            return {2:11, 3:25, 4:40, 5:60, 6:80, 7:100}[size]
         else:
             return 120
 
     @staticmethod
-    def get_scramble(x = 3, moves = None):
+    def get_scramble(size = 3, moves = None):
         """Return a sequence of random turns whose depths are less than or
         equal to the given cube dimension.
 
@@ -156,7 +156,7 @@ class TurnSequence(list):
         otherwise, use the value returned by default_moves
         """
         if moves == None:
-            moves = TurnSequence.default_moves(x)
+            moves = TurnSequence.default_moves(size)
 
         ret = TurnSequence()
 
@@ -165,7 +165,7 @@ class TurnSequence(list):
 
         for lcv in range(moves):
             while turn.move == last.move or turn.opposite_face() == last.move:
-                turn = Turn.random_turn(x)
+                turn = Turn.random_turn(size)
             last = turn
             ret.append(turn)
 

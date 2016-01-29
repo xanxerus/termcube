@@ -61,16 +61,31 @@ def prompt_int(prompt = 'Enter a number: ', default = None, condition = None):
             return default
 
 class Solve(namedtuple('Solve', ['time', 'penalty', 'tags', 'scramble'])):
-    def totaltime(self):
-        return self.time + self.penalty
+	def totaltime(self):
+		if self.penalty == 'DNF':
+			return self.time
+		return self.time + self.penalty
+	
+	@staticmethod
+	def formattime(time):
+		return '%.2f' % time if time < 60 else '%d:%05.2f' % divmod(time, 60)
+	
+	def __str__(self):
+		timestr = Solve.formattime(self.time)
+		if self.penalty == 0:
+			return timestr
+		elif self.penalty == 2:
+			return '%s (+2)' % timestr
+		elif self.penalty == 'DNF':
+			return '%s (DNF)' % timestr
 
 def mean(arr):
-    #~ try:
+    try:
         return sum(arr)/len(arr)
-    #~ except:
-        #~ return None
+    except:
+        return 0
     
-def count_down(inspection_time = 15.):
+def count_down(inspection = 15.0):
     """Count down a given number of seconds or until interrupted by
     the enter key, then return a penalty corresponding to the time past
     the allotted inspection time that the timer was stopped.
@@ -80,24 +95,28 @@ def count_down(inspection_time = 15.):
     2               2
     >2              "DNF"
     """
-    if inspection_time <= 0:
+    if inspection <= 0:
         return 0
 
     stop = []
-    Thread(target=(lambda stop:stop.append(input())), args=(stop,)).start()
+    Thread(target = lambda stop : stop.append(input()), args=(stop,)).start()
     start = time()
     while not stop:
-        if inspection_time > time()-start:
-            print('%-3.2f  ' % (inspection_time-time()+start), end='\r')
-        elif inspection_time + 2 > time() - start:
+        if inspection > time() - start:
+            print('%-3.2f  ' % (inspection - time() + start), end='\r')
+        elif inspection + 2 > time() - start:
             print('%-5s' % '+2', end='\r')
         else:
             print('%-5s' % 'DNF', end='\r')
 
-    dt = time() - start - inspection_time
-
-    return 0 if dt <= 0 else 2 if dt <= 2 else 'DNF'
-
+    dt = time() - start - inspection
+    
+    if dt <= 0:
+        return 0
+    elif dt <= 2:
+        return 2
+    else:
+        return 'DNF'
 
 def count_up():
     """Start a timer counting up until interrupted with enter key.
@@ -109,24 +128,25 @@ def count_up():
     ret = 0
     while not stop:
         ret = time()-start
-        print('%.2f    ' % ret, end='\r')
+        timestr = Solve.formattime(ret)
+        print(timestr, end='\r')
     print('%-10s' % '\r')
     return ret
 
 def stats(arr):
-    dic = {}
+    tags = dict()
     for solve in arr:
-        for tag in solve.tags.split():
-            if tag in dic:
-                dic[tag].append(solve.totaltime())
-            else:
-                dic[tag] = [solve.totaltime()]
-    if 'Untagged' in dic:
-        del dic['Untagged']
-    for k in dic:
-        dic[k] = mean(dic[k])
+        if solve.tags:
+            for tag in solve.tags.split():
+                if tag in tags:
+                    tags[tag].append(solve.totaltime())
+                else:
+                    tags[tag] = [solve.totaltime()]
 
-    return sum(e.totaltime() for e in arr)/len(arr), dic
+    for key in tags:
+        tags[key] = mean(tags[key])
+
+    return sum(e.totaltime() for e in arr)/len(arr), tags
 
 def export_times(filename, ret):
     total, d = stats(ret)
@@ -137,80 +157,87 @@ def export_times(filename, ret):
     with open(filename, 'w' if isfile(filename) else 'a') as o:
         o.write(p)
 
-def get_times(cube_size=3, inspection_time=15, using_tags=True, using_random_state=True, scramble_length=-1):
+def command(usr, solve_number, solves):
+    if usr == 'exit':
+        return solve_number - 1, solves
+    elif usr.startswith('stat'):
+        total, d = stats(solves)
+        print('%-10s %.2f' % ('All', total))
+        for k in d:
+            print('%-10s %.2f' % (k, d[k]))
+    elif usr.startswith('merge'):
+        merge_tags, new_tag = '', ''
+        while merge_tags == '':
+            print('List of tag(s) to merge/rename: ')
+            merge_tags = input().split()
+        while new_tag == '':
+            print('New tag name: ')
+            new_tag = input()
+        for solve in solves:
+            for target in merge_tags:
+                solve.tags = solve.tags.replace(target, new_tag)
+            print('Success')
+    elif usr.startswith('export'):
+        print('Name of file to export to: ', end='')
+        filename = input()
+        export_times(filename, solves)
+        print("Export successful")
+    elif usr.startswith('del'):
+        delete_index = prompt_int("Delete which scramble number? (default last): ", 
+                                  default = solve_number-1, 
+                                  condition = lambda n: 0 < n < solve_number)-1
+        try:
+            t = solves[delete_index]
+            del solves[delete_index]
+            print('Removed solve number %d: %s' % (delete_index+1, t))
+            return -1
+        except:
+            print('Unable to remove solve %d' % (delete_index+1))
+    else:
+        print(help_text)
+
+def prompt_tags():
+    while True:
+        print("Type your tag(s) or 'del' to forget this solve: ", end='')
+        tags = input()
+        if tags:
+            return tags
+
+def get_times(size = 3, inspection = 15, usingtags = False, random = True, length = -1):
     print('Initializing...')
     solves = []
-    cube = Cube(cube_size)
-    solve_number = 1
-    with ScrambleGenerator(size=cube_size, random_state=using_random_state, moves=scramble_length) as scrambler:
+    cube = Cube(size)
+    solvenumber = 1
+    with ScrambleGenerator(size, random, length) as scrambler:
         while True:
             cube.reset()
             cube.apply('x')
             scramble = next(scrambler)
             cube.apply(scramble)
-            print('Solve %d' % solve_number)
-
+            print('Solve %d' % solvenumber)
             print(cube)
-            print(scramble, end='')
-
+            print(scramble, end=' ')
+            
             usr = input()
             while usr:
-                if usr == 'exit':
-                    return solve_number-1, solves
-                elif usr.startswith('stat'):
-                    total, d = stats(solves)
-                    print('%-10s %.2f' % ('All', total))
-                    for k in d:
-                        print('%-10s %.2f' % (k, d[k]))
-                elif usr.startswith('merge'):
-                    merge_tags, new_tag = '', ''
-                    while merge_tags == '':
-                        print('List of tag(s) to merge/rename: ')
-                        merge_tags = input().split()
-                    while new_tag == '':
-                        print('New tag name: ')
-                        new_tag = input()
-                    for solve in solves:
-                        for target in merge_tags:
-                            solve.tags = solve.tags.replace(target, new_tag)
-                        print('Success')
-                elif usr.startswith('export'):
-                    print('Name of file to export to: ', end='')
-                    filename = input()
-                    export_times(filename, solves)
-                    print("Export successful")
-                elif usr.startswith('del'):
-                    delete_index = prompt_int("Delete which scramble number? (default last): ", 
-                                              default=solve_number-1, 
-                                              condition=lambda n: 0 < n < solve_number)-1
-                    try:
-                        t = solves[delete_index].totaltime()
-                        del solves[delete_index]
-                        print('Removed solve number %d: %.2f' % (delete_index+1, t))
-                        solve_number -= 1
-                    except:
-                        print('Unable to remove solve %d' % (delete_index+1))
-                else:
-                    print(help_text)
+                q = command(usr, solvenumber, solves)
+                if q == -1:
+                    solvenumber -= 1
+                elif q is not None:
+                    return q
                 usr = input()
-
-            penalty = count_down(inspection_time)
+            
+            penalty = count_down(inspection)
             time = count_up()
-            tags = ''
+            tags = prompt_tags() if usingtags else None
 
-            if penalty == 'DNF':
-                print('DNF times are not saved')
+            if tags == 'del':
                 continue
 
-            while using_tags and not tags:
-                print("Type your tag(s) or 'del' to forget this solve: ", end='')
-                tags = input()
-                if tags == 'del':
-                    break
-                if not tags:
-                    continue
-            else:
-                solve_number += 1
-                solves.append(Solve(time, penalty, tags if using_tags else 'Untagged', scramble))
-                print()
-    return solve_number-1, solves
+            if penalty == 'DNF':
+                print('DNF penalties are ignored')
+
+            solvenumber += 1
+            solves.append(Solve(time, penalty, tags, scramble))
+            print()
+    return solvenumber - 1, solves
