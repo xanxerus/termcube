@@ -84,7 +84,7 @@ def mean(arr):
         return sum(arr)/len(arr)
     except:
         return 0
-    
+
 def count_down(inspection = 15.0):
     """Count down a given number of seconds or until interrupted by
     the enter key, then return a penalty corresponding to the time past
@@ -110,7 +110,7 @@ def count_down(inspection = 15.0):
             print('%-5s' % 'DNF', end='\r')
 
     dt = time() - start - inspection
-    
+
     if dt <= 0:
         return 0
     elif dt <= 2:
@@ -157,9 +157,9 @@ def export_times(filename, ret):
     with open(filename, 'w' if isfile(filename) else 'a') as o:
         o.write(p)
 
-def command(usr, solve_number, solves):
+def command(usr, solvenumber, solves):
     if usr == 'exit':
-        return solve_number - 1, solves
+        return solvenumber - 1, solves
     elif usr.startswith('stat'):
         total, d = stats(solves)
         print('%-10s %.2f' % ('All', total))
@@ -183,9 +183,9 @@ def command(usr, solve_number, solves):
         export_times(filename, solves)
         print("Export successful")
     elif usr.startswith('del'):
-        delete_index = prompt_int("Delete which scramble number? (default last): ", 
-                                  default = solve_number-1, 
-                                  condition = lambda n: 0 < n < solve_number)-1
+        delete_index = prompt_int("Delete which scramble number? (default last): ",
+                                  default = solvenumber-1,
+                                  condition = lambda n: 0 < n < solvenumber)-1
         try:
             t = solves[delete_index]
             del solves[delete_index]
@@ -217,7 +217,7 @@ def get_times(size = 3, inspection = 15, usingtags = False, random = True, lengt
             print('Solve %d' % solvenumber)
             print(cube)
             print(scramble, end=' ')
-            
+
             usr = input()
             while usr:
                 q = command(usr, solvenumber, solves)
@@ -226,7 +226,7 @@ def get_times(size = 3, inspection = 15, usingtags = False, random = True, lengt
                 elif q is not None:
                     return q
                 usr = input()
-            
+
             penalty = count_down(inspection)
             time = count_up()
             tags = prompt_tags() if usingtags else None

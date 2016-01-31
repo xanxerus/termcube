@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import sys
-from .cube import Cube 
+from .cube import Cube
 from .turn import Turn, TurnSequence
 from time import sleep
 
@@ -10,7 +10,8 @@ try:
 except:
     noncurses = True
 
-help_text = \
+class Simulator(Cube):
+    help_text = \
 """Term Cube Simulator (Curses implementation)
 
 Manipulate a virtual cube using cube notation!
@@ -21,36 +22,35 @@ Hold shift and press to do the reverse of that turn.
 Press : to initiate a command or type a longer string of notation.
 
 Available commands:
--reset      - Reset the cube to a solved position
--solve      - Display a two-phase solution
--sexy       - Apply the sexy move (R U R' U')
--scramble   - Print a scramble and apply it
--exit       - Exit interactive mode (change cube)
--help       - Access this help text"""
-
-class Simulator(Cube):
+:reset      - Reset the cube to a solved position
+:solve      - Display a two-phase solution
+:sexy       - Apply the sexy move (R U R' U')
+:scramble   - Print a scramble and apply it
+:exit       - Exit interactive mode (change cube)
+:help       - Access this help text"""
+    
     def __init__(self, size = 3):
         super(Simulator, self).__init__(size)
-    
+
     def __call__(self, scr):
         self.initialize(scr)
-        
+
         if noncurses:
             self.interact()
             return
-        
+
         m = ''
         while m != chr(27):
             self.printcube(scr)
             m = chr(scr.getch())
-            
+
             if m in ':1234567890':
                 scr.addstr(0, 0, m)
                 self.command(scr, m + self.getln(scr).strip())
             else:
                 u = m.upper()
                 l = m.lower()
-                
+
                 if u in Turn.moves or l in Turn.moves:
                     if u in Turn.moves:
                         t = Turn(u)
@@ -89,11 +89,11 @@ class Simulator(Cube):
                 self.apply(TurnSequence(command))
             except:
                 scr.addstr(0, 0, 'Invalid move: %s' % command)
-    
+
     def help(self, scr):
         scr.clear()
         try:
-            scr.addstr(0, 0, help_text)
+            scr.addstr(0, 0, Simulator.help_text)
         except:
             pass
         while scr.getch() == curses.KEY_RESIZE:
@@ -104,7 +104,7 @@ class Simulator(Cube):
         if not curses.has_colors():
             noncurses = True
             return
-        
+
         curses.init_pair(ord('F') - 60, curses.COLOR_WHITE, curses.COLOR_WHITE)
         curses.init_pair(ord('R') - 60, curses.COLOR_WHITE, curses.COLOR_RED)
         curses.init_pair(ord('U') - 60, curses.COLOR_WHITE, curses.COLOR_BLUE)
@@ -113,7 +113,7 @@ class Simulator(Cube):
         curses.init_pair(ord('B') - 60, curses.COLOR_WHITE, curses.COLOR_YELLOW)
         scr.leaveok(0)
         curses.noecho()
-        
+
         try:
             curses.curs_set(0)
         except:
@@ -124,16 +124,16 @@ class Simulator(Cube):
             curses.curs_set(2)
         except:
             pass
-        
+
         curses.echo()
-        
+
         if hasattr(delimiter, '__call__'):
             exitcondition = delimiter
         elif isinstance(delimiter, str):
-            exitcondition = lambda c : c == delimiter
+            exitcondition = lambda c: c == delimiter
         else:
-            exitcondition = lambda c : c == chr(delimiter)
-        
+            exitcondition = lambda c: c == chr(delimiter)
+
         ret = ''
         while True:
             c = chr(scr.getch())
@@ -143,13 +143,13 @@ class Simulator(Cube):
                 ret = ret[:-1]
             else:
                 ret += c
-        
+
         try:
             curses.curs_set(0)
         except:
             pass
         curses.noecho()
-        
+
         return ret
 
     def printcube(self, scr):
@@ -159,14 +159,14 @@ class Simulator(Cube):
         scr.clear()
         xinit = (maxx - 6*self.size) // 2 - 1
         y = (maxy - 3*self.size) // 2 - 1
-        
+
         for r in self.faces['U']:
             x = xinit + self.size*2
             for c in r:
                 scr.addstr(y, x, '  ', curses.color_pair(ord(c) - 60))
                 x += 2
             y += 1
-        
+
         for r in range(self.size):
             x = xinit
             for c in self.faces['L'][r]:
