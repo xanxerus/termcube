@@ -21,17 +21,3 @@ def solve(facelets, maxDepth = 24, timeOut = 1000, useSeparator = False):
         return errors[res], time() - t
     else:
         return TurnSequence(res), time() - t
-
-def solve_optimal(facelets, verbose = False):
-    moves = 0
-    t = time()
-    while True:
-        if verbose:
-            print('Minimum Moves Calculating: %d, Time: %.2f' % (moves, time() - t))
-        ret = solve(facelets, moves, timeOut = -1)
-        if ret[0] == 'Error 7':
-            moves += 1
-        elif not type(ret[0]) == TurnSequence:
-            return ret
-        else:
-            return ret
