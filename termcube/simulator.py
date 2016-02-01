@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-import sys
+from sys import exit
 from .cube import Cube
 from .turn import Turn, TurnSequence
 from time import sleep
 
 try:
     import curses
-    noncurses = False
+    nocurses = False
 except:
-    noncurses = True
+    nocurses = True
 
 class Simulator(Cube):
     help_text = \
@@ -32,10 +32,10 @@ Available commands:
     def __init__(self, size = 3):
         super(Simulator, self).__init__(size)
 
-    def __call__(self, scr):
+    def __call__(self, scr, nocurses):
         self.initialize(scr)
 
-        if noncurses:
+        if nocurses:
             self.interact()
             return
 
@@ -81,7 +81,7 @@ Available commands:
         elif command == ':scramble':
             scr.addstr(0, 0, str(self.scramble()))
         elif command == ':exit':
-            sys.exit(0)
+            exit(0)
         elif command == ':help':
             Simulator.cornerandwait(scr, self.helptext)
         else:
@@ -103,7 +103,8 @@ Available commands:
     def initialize(self, scr):
         self.scr = scr
         if not curses.has_colors():
-            noncurses = True
+            global nocurses
+            nocurses = True
             return
 
         curses.init_pair(ord('F') - 60, curses.COLOR_WHITE, curses.COLOR_WHITE)
@@ -190,5 +191,5 @@ Available commands:
             y += 1
         scr.move(maxy-1, maxx-1)
 
-def simulate(size = 3):
-    curses.wrapper(Simulator(size))
+def simulate(size = 3, nocurses = False):
+    curses.wrapper(Simulator(size), nocurses)

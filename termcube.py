@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 import sys
 from argparse import ArgumentParser, Namespace, RawDescriptionHelpFormatter
-from termcube import cube, simulator, termusr, turn
-from termcube.termusr import prompt_number, prompt_int
+from termcube import cube, simulator, turn
+from termcube.termusr import prompt_number, prompt_int, timer
 
 epilog_text = \
 """possible behaviours:
@@ -28,8 +28,8 @@ parser.add_argument('--inspection', '-i', default=15.0, type=float,
 parser.add_argument('--unofficial', '-u', nargs='?', type=int, default=None, const=-1,
             help='Use a low CPU alternative to official style scrambles')
 
-parser.add_argument('--usingtags', '-t', action='store_true',
-            help='Apply tags after each solve to sort')
+parser.add_argument('--nocurses', '-n', action='store_true',
+            help='Low-dependency alternative to the usual display settings')
 
 def prompt_args():
     print('1. Timer')
@@ -45,8 +45,6 @@ def prompt_args():
 
         options.size = prompt_int("Cube size (default 3): ", 3, lambda n: n > 0)
         options.inspection = prompt_number("Inspection time (default 15): ", 15.0)
-        print('Use tags? (default no): ', end='')
-        options.usingtags = input().startswith('y')
 
         if options.size == 3:
             print('Use random state scrambles? This may lag on your computer. (default yes): ', end='')
@@ -58,8 +56,6 @@ def prompt_args():
             options.unofficial = prompt_int('How long should scrambles be? (default %d): '\
                     % turn.TurnSequence.default_moves(options.size),
                     default=-1)
-
-        return options
 
     elif usr == 2:
         options.behaviour = 'simulator'
@@ -73,29 +69,13 @@ def prompt_args():
         options.size = prompt_int("Choose a cube size (default 3): ", default=3, condition=lambda n: n > 1)
     else:
         options.size = 3
+    
+    if usr == 1 or usr == 2:
+        options.nocurses = not prompt_str("Use curses? (y/n) (default yes): ", default='y').startswith('y')
+    
     options.inspection = 15.0
     options.unofficial = -1
-    options.usingtags = False
     return options
-
-def timer(size = 3, inspection = 15, usingtags = False, random = True, length = -1):
-    #Main application
-    solves, times = termusr.get_times(size, inspection, usingtags, random, length)
-
-    #Exit
-    print("Session has ended.")
-    if solves != 0:
-        total, d = termusr.stats(times)
-        print("Statistics:")
-        statstring = 'Average of %d: %.2f\n' % (solves, total)
-        statstring += '\n'.join('%-10s %.2f' % (k, d[k]) for k in d)
-        print(statstring)
-        print('Export your times to a file?')
-        if input().startswith('y'):
-            print('Name of file to export to: ', end='')
-            filename = input()
-            termusr.export_times(filename, times)
-            print("Export successful")
 
 def main():
     print("Term Cube: Timer and Simulator")
@@ -114,9 +94,9 @@ def main():
     if options.behaviour == 'timer':
         timer(options.size, 
               options.inspection, 
-              options.usingtags,
               random = options.unofficial == None,
-              length = options.unofficial if options.unofficial else -1)
+              length = options.unofficial if options.unofficial else -1,
+              nocurses = options.nocurses)
     elif options.behaviour == 'simulator':
         simulator.simulate(options.size)
     elif options.behaviour == 'demo-kociemba':
