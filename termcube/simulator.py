@@ -83,17 +83,18 @@ Available commands:
         elif command == ':exit':
             sys.exit(0)
         elif command == ':help':
-            self.help(scr)
+            Simulator.cornerandwait(scr, self.helptext)
         else:
             try:
                 self.apply(TurnSequence(command))
             except:
                 scr.addstr(0, 0, 'Invalid move: %s' % command)
 
-    def help(self, scr):
+    @staticmethod
+    def cornerandwait(scr, msg):
         scr.clear()
         try:
-            scr.addstr(0, 0, Simulator.help_text)
+            scr.addstr(0, 0, msg)
         except:
             pass
         while scr.getch() == curses.KEY_RESIZE:
@@ -119,7 +120,8 @@ Available commands:
         except:
             pass
 
-    def getln(self, scr, delimiter = '\n'):
+    @staticmethod
+    def getln(scr, delimiter = '\n'):
         try:
             curses.curs_set(2)
         except:

@@ -3,17 +3,18 @@ from termcube.cube import Cube, ScrambleGenerator
 from termcube.simulator import Simulator
 from termcube.turn import TurnSequence
 
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
+from os.path import isfile
 from sys import exit
 from time import time
 import curses
 import datetime
 
 class Solve():
-	def __init__(self, time, penalty, tags, scramble):
+	def __init__(self, time, penalty, scramble):
 		self.time = time
 		self.penalty = penalty
-		self.tags = tags 
+		self.tags = ''
 		self.scramble = scramble
 	
 	def totaltime(self):
@@ -29,6 +30,14 @@ class Solve():
 			return '%s (+2)' % timestr
 		elif self.penalty == 'DNF':
 			return '%s (DNF)' % timestr
+
+	def __repr__(self):
+		ret = 'Solve: ' + str(self)
+		ret += ' '
+		if self.tags:
+			ret += '#' + ' #'.join(self.tags.replace('#', ' ').split()) + ' '
+		ret += str(self.scramble)
+		return ret
 
 	@staticmethod
 	def formattime(time):
@@ -57,11 +66,11 @@ Before inspection, it is possible to enter a command by pressing ':'
 or tag the previous solve by pressing '#'
 
 Available commands:
+#tagname    - Tag the previous solve with the given tagname
 :exit       - End this timer session (you will be able to export after)
-:stat       - Display this session's statistics so far
 :merge      - Rename one tag or merge multiple together
 :export     - Export your times to a file
-:del        - Delete a solve
+:del        - Delete a solve (default last)
 :help       - Display this help text"""
 
 	def __init__(self, size = 3, inspection = 15, random = True, length = -1):
@@ -69,29 +78,18 @@ Available commands:
 		self.inspection = inspection
 		self.random = random
 		self.length = length if not random else None
+		self.solvenumber = 1
+		self.best = self.worst = self.sessionavg = self.curravg5 = self.bestavg5 = None
+		self.solves = []
 
 	def __call__(self, scr):
 		self.initialize(scr)
-		solves = []
-		solvenumber = 1
-		best = worst = sessionavg = curravg5 = bestavg5 = None
-		qy, qx = self.q.getmaxyx()
-		self.q.addstr(qy//2 -1, (qx - len("Initializing..."))//2, "Initializing...")
-		self.q.refresh()
+		Timer.addcenter(self.q, "Initializing...")
 
 		with ScrambleGenerator(self.size, self.random, self.length) as scrambler:
 			while True:
 				#Print statistics
-				stats = ["Solve number : %d" % solvenumber,
-						 "Best : %s" % Solve.formattime(best),
-						 "Worst : %s" % Solve.formattime(worst),
-						 "Session Avg : %s" % Solve.formattime(sessionavg),
-						 "Current Avg 5 : %s" % Solve.formattime(curravg5),
-						 "Best Avg 5 : %s" % Solve.formattime(bestavg5)]
-				self.r.clear()
-				for i in range(min(len(stats), self.r.getmaxyx()[0])):
-					self.r.addstr(i, (self.r.getmaxyx()[1] - len(stats[i])) // 2, stats[i])
-				self.r.refresh()
+				self.printstats(self.r)
 
 				#Scramble
 				self.reset()
@@ -108,31 +106,16 @@ Available commands:
 				#Print Cube and Scramble
 				self.printcube(self.w)
 				self.w.refresh()
-				qy, qx = self.q.getmaxyx()
-				self.q.addstr(qy//2 - 1, (qx - len(str(scramble)))//2, str(scramble))
+				Timer.addcenter(self.q, scramble)
 
 				#Command
-				self.q.nodelay(0)
 				usr = chr(self.q.getch())
 				while usr in ":#":
-					self.q.clear()
-					self.q.addstr(self.q.getmaxyx()[0]//2 - 1, 0, usr) 
-					line = self.getln(self.q)
-					self.q.nodelay(0)
+					Timer.addcenter(self.q, usr, startx = 0) 
+					line = Timer.getln(self.q)
 					
-					commandexit = self.command(self.q, usr + line, solvenumber, solves)
-					
-					if commandexit == 1:
-						self.q.clear()
-						maxqy, maxqx = self.q.getmaxyx() 
-						self.q.addstr(maxqy//2 - 1, (maxqx - len('Tag failed'))//2, 'Tag failed')
-						self.q.getch()
-
-					self.q.clear()
-					qy, qx = self.q.getmaxyx()
-					self.q.addstr(qy//2 - 1, (qx - len(str(scramble)))//2, str(scramble))
-					self.q.refresh()
-
+					self.command(self.q, usr + line)
+					Timer.addcenter(self.q, scramble)
 					usr = chr(self.q.getch())
 
 				self.q.nodelay(1)
@@ -142,75 +125,191 @@ Available commands:
 
 				#Solve
 				time = self.countup(self.q)
-				solves.append(Solve(time, penalty, None, scramble))
+				self.solves.append(Solve(time, penalty, scramble))
 				self.q.getch()
+				
+				#Update statistics
+				if self.best == None:
+					self.best = self.worst = time
+					self.sessionavg = 1
+				if time < self.best:
+					self.best = time
+				if time > self.worst:
+					self.worst = time
+				self.sessionavg = (self.sessionavg*(self.solvenumber - 1) + time) / self.solvenumber
+				if self.solvenumber >= 5:
+					self.curravg5 = Solve.avg5(self.solves)
+					if self.bestavg5 == None or self.curravg5 < self.bestavg5:
+						self.bestavg5 = self.curravg5
+				self.solvenumber += 1
 
 				#Print solve times
-				self.e.clear()
-				for i in range(min(solvenumber, self.e.getmaxyx()[0])):
-					timestr = 'Solve %d: %s' % (solvenumber - i, solves[-i-1])
-					self.e.addstr(i, (self.e.getmaxyx()[1] - len(timestr))//2, timestr)
-				self.e.refresh()
+				self.printtimes(self.e)
 
-				#Update statistics
-				if best == None:
-					best = worst = time
-					sessionavg = 1
-				if time < best:
-					best = time
-				if time > worst:
-					worst = time
-				sessionavg = (sessionavg*(solvenumber - 1) + time) / solvenumber
-				if solvenumber >= 5:
-					curravg5 = Solve.avg5(solves)
-					if bestavg5 == None or curravg5 < bestavg5:
-						bestavg5 = curravg5
-				solvenumber += 1
+	def printstats(self, scr):
+		stats = ["Solve number : %d" % self.solvenumber,
+				 "Best : %s" % Solve.formattime(self.best),
+				 "Worst : %s" % Solve.formattime(self.worst),
+				 "Session Avg : %s" % Solve.formattime(self.sessionavg),
+				 "Current Avg 5 : %s" % Solve.formattime(self.curravg5),
+				 "Best Avg 5 : %s" % Solve.formattime(self.bestavg5)]
+		scr.clear()
+		maxy, maxx = scr.getmaxyx()
+		for i in range(min(len(stats), maxy)):
+			Timer.addcenter(scr, stats[i], starty = i, clear = False)
+		scr.refresh()
+
+	def printtimes(self, scr):
+		self.e.clear()
+		for i in range(min(self.solvenumber - 1, self.e.getmaxyx()[0])):
+			timestr = 'Solve %d: %s' % (self.solvenumber-i-1 , self.solves[-i-1])
+			Timer.addcenter(self.e, timestr, starty = i, clear = False)
+		self.e.refresh()
+
+	def recalculate(self):
+		self.best = self.worst = self.sessionavg = self.curravg5 = self.bestavg5 = None
+		self.solvenumber = 1
+		
+		sum = 0
+		for solve in self.solves:
+			time = solve.totaltime()
+			sum += time
+			if self.best is None or time < self.best:
+				self.best = time
+			if self.worst is None or time > self.worst:
+				self.worst = time
+			if self.solvenumber >= 5:
+				self.curravg5 = Solve.avg5(self.solves[:solvenumber])
+				if self.bestavg5 is None or self.curravg5 < self.bestavg5:
+					self.bestavg5 = self.curravg5
+			self.solvenumber += 1
+		if self.solvenumber > 1:
+			self.sessionavg = sum/(self.solvenumber-1)
 
 	@staticmethod
-	def stats(arr):
-		tags = dict()
+	def tagsort(arr):
+		tags = OrderedDict()
 		for solve in arr:
-			if solve.tags:
-				for tag in solve.tags.split():
-					if tag in tags:
-						tags[tag].append(solve.totaltime())
-					else:
-						tags[tag] = [solve.totaltime()]
-
-		for key in tags:
-			tags[key] = mean(tags[key])
-
+			for tag in solve.tags.split():
+				if tag in tags:
+					tags[tag].append(solve)
+				else:
+					tags[tag] = [solve]
 		return tags
 
-	def command(self, scr, command, solvenumber, solves):
-		'''Return values:
-		0 if all is well
-		1 if tags failed
-		'''
+	@staticmethod
+	def addcenter(scr, msg, starty = None, startx = None, clear = True):
+		if clear:
+			scr.clear()
+		maxy, maxx = scr.getmaxyx()
+		msg = str(msg)
+		if maxy > 1:
+			scr.addstr(maxy//2 - 1 if starty is None else starty, (maxx - len(msg))//2 if startx is None else startx, msg)
+		else:
+			scr.addstr(maxy//2 if starty is None else starty, (maxx - len(msg))//2 if startx is None else startx, msg)
+
+	def command(self, scr, command):
+		scr.clear()
+		maxy, maxx = scr.getmaxyx() 
+
 		if command == ':exit':
 			exit(0)
 		elif command.startswith("#"):
 			try:
-				if solves[-1].tags:
-					solves[-1].tags += ' ' + command[1:]
+				if self.solves[-1].tags:
+					self.solves[-1].tags += ' ' + command[1:]
 				else:
-					solves[-1].tags = command[1:]
+					self.solves[-1].tags = command[1:]
 			except:
-				return 1
+				Timer.addcenter(scr, 'Tag failed')
+				scr.getch()
+		elif command.startswith(':del'):
+			Timer.addcenter(scr, 'Delete which solve? (default last): ', startx = 0)
+			index = Timer.getln(scr)
+			#~ try:
+			index = int(index) if index else self.solvenumber - 1
+			t = self.solves[index - 1]
+			del self.solves[index - 1]
+			self.solvenumber -= 1
+			Timer.addcenter(scr, 'Removed solve number %d: %s' % (index, t))
+			self.printstats(self.r)
+			self.printtimes(self.e)
+			self.recalculate()
+			scr.getch()
+			#~ except Exception as e:
+				#~ Timer.addcenter(scr, '%s %s' % (e, index))
+				#~ scr.getch()
+		elif command.startswith(':merge'):
+			mergetags, newtag = '', ''
+			while mergetags == '':
+				Timer.addcenter(scr, 'List of tag(s) to merge/rename: ', startx = 0)
+				mergetags = Timer.getln(scr)
+			while newtag == '':
+				Timer.addcenter(scr, 'New tag name: ', startx = 0)
+				newtag = Timer.getln(scr)
+			for solve in self.solves:
+				for target in mergetags:
+					solve.tags = solve.tags.replace(target, newtag)
+				Timer.addcenter(scr, 'Success')
+				scr.getch()
+		elif command.startswith(':export'):
+			Timer.addcenter(scr, 'Name of file to export to: ', startx = 0)
+			self.exporttimes(Timer.getln(scr))
+			Timer.addcenter(scr, 'Export successful')
+			scr.getch()
 		else:
-			self.help(self.scr)
-		return 0
+			self.cornerandwait(self.scr, self.help_text)
+			self.refresh()
+	
+	def exporttimes(self, filename):
+		p = ''
+		p += "Average of %d: %.2f" % (self.solvenumber-1, self.sessionavg) + '\n'
+		p += "Best : %s" % Solve.formattime(self.best) + '\n'
+		p += "Worst : %s" % Solve.formattime(self.worst) + '\n'
+		p += "Session Avg : %s" % Solve.formattime(self.sessionavg) + '\n'
+		p += "Current Avg 5 : %s" % Solve.formattime(self.curravg5) + '\n'
+		p += "Best Avg 5 : %s" % Solve.formattime(self.bestavg5) + '\n'
+		p += '\n'
+		
+		tags = Timer.tagsort(self.solves) 
+		for tag in tags:
+			solves = tags[tag]
+			best = worst = sessionavg = curravg5 = bestavg5 = None
+			solvenumber = 1
+			
+			sum = 0
+			for solve in solves:
+				time = solve.totaltime()
+				sum += time
+				if best is None or time < best:
+					best = time
+				if worst is None or time > worst:
+					worst = time
+				if solvenumber >= 5:
+					curravg5 = Solve.avg5(solves[:solvenumber])
+					if bestavg5 is None or curravg5 < bestavg5:
+						bestavg5 = curravg5
+				solvenumber += 1
+			if solvenumber > 1:
+				tagavg = sum/(solvenumber-1)
+				
+			p += 'Solves with the tag: #' + tag.replace('#', '') + '\n'
+			p += "Average of %d: %.2f" % (solvenumber-1, tagavg) + '\n'
+			p += "Best : %s" % Solve.formattime(best) + '\n'
+			p += "Worst : %s" % Solve.formattime(worst) + '\n'
+			p += "Session Avg : %s" % Solve.formattime(sessionavg) + '\n'
+			p += "Current Avg 5 : %s" % Solve.formattime(curravg5) + '\n'
+			p += "Best Avg 5 : %s" % Solve.formattime(bestavg5) + '\n'
+			p += '\n' 
+			p += '\n'.join(map(repr, solves))
+			p += '\n'*3
+		
+		p += "All solves: \n" + '\n'.join(map(repr, self.solves))
+		with open(filename, 'w' if isfile(filename) else 'a') as o:
+			o.write(p)
+		
+		
 
-	def help(self, scr):
-		scr.clear()
-		try:
-			scr.addstr(0, 0, Timer.help_text)
-		except:
-			pass
-		while scr.getch() == curses.KEY_RESIZE:
-			pass
-		self.refresh()
 
 	def countdown(self, scr, inspection = 15.0):
 		scr.clear()
