@@ -76,9 +76,9 @@ class Cube:
         if random and self.size == 3:
             return scramble.scramble()
         elif moves is not None and moves > 1:
-            return TurnSequence.get_scramble(self.size, moves)
+            return Turn.get_scramble(self.size, moves)
         else:
-            return TurnSequence.get_scramble(self.size)
+            return Turn.get_scramble(self.size)
 
     def apply(self, sequence):
         """Apply a given TurnSequence to this Cube. If a str was given,

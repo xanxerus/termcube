@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from termcube.termcube.turn import Turn, TurnSequence
+from termcube.turn import Turn, TurnSequence
 from random import choice
 
 def rotate_cw(face):
@@ -33,7 +33,9 @@ class SkewbTurn(Turn):
             self.move, self.direction = move[0], move[1] if len(move) > 1 else ''
 
     def opposite_face(self):
-        """Fails for this object"""
+        """If the given turn has an opposite face, return it."""
+        if self.move in 'UB':
+            return 'UB'.replace(self.move, '')
         return None
 
     def opposite_direction(self):
@@ -88,16 +90,26 @@ class Skewb():
         for face in 'FRULDB':
             self.faces[face] = [face]*5
 
-    def scramble(self, random = False, moves = -1):
+    def scramble(self, random = False, moves = 25):
         """Generate, apply, and return a scramble."""
         s = self.get_scramble(random, moves)
         self.apply(s)
         return s
 
-    def get_scramble(self, random = False, moves = -1):
+    def get_scramble(self, random = False, moves = 25):
         """Generate and return a scramble without applying."""
-        return TurnSequence.get_scramble(Skewb, moves)
-    
+        ret = TurnSequence()
+
+        last = SkewbTurn('R')
+        turn = SkewbTurn('R')
+
+        for lcv in range(moves):
+            while turn.move == last.move or turn.opposite_face() == last.move:
+                turn = SkewbTurn.random_turn()
+            last = turn
+            ret.append(turn)
+        return ret
+
     def apply(self, sequence):
         """Apply a given TurnSequence to this Skewb. If a str was given,
         convert to TurnSequence then apply.
