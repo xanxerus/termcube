@@ -178,7 +178,7 @@ class Cube:
         return self.faces == other.faces
 
     def __str__(self):
-        """Return the type of cube and an ANSI color representation."""
+        """Return an ANSI color representation of this Cube."""
         ret = ''
         for r in self.faces['U']:
             ret += '  '*self.size
@@ -232,7 +232,7 @@ class Cube:
 
     def is_solved(self):
         """Return true if all faces are a solid color."""
-        for f in Turn.faces:
+        for f in self.faces:
             w = self.faces[f][0][0]
             for r in self.faces[f]:
                 if not all(map(lambda arg: arg == w, r)):
