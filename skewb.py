@@ -16,7 +16,6 @@ def rotate_2(face):
     return list(face[i] for i in [0, 4, 3, 2, 1])
 
 class SkewbTurn(Turn):
-    directions = ('', '\'')
     faces = ('R', 'U', 'L', 'B')
     axes = ('x', 'y', 'z')
     moves = faces + axes
@@ -30,7 +29,11 @@ class SkewbTurn(Turn):
         if move in Turn.moves:
             self.move, self.direction = move, direction
         else:
-            self.move, self.direction = move[0], move[1] if len(move) > 1 else ''
+            self.move, self.direction =  move[0], move[1:]
+            if self.direction == "2'" or self.direction == "'2":
+                self.direction = '2'
+            if self.move in SkewbTurn.faces and self.direction == '2':
+                self.direction = "'"
 
     def opposite_face(self):
         """If the given turn has an opposite face, return it."""
@@ -120,44 +123,63 @@ class Skewb():
 
     def apply_turn(self, turn):
         """Apply a given Turn to this Cube. Does not convert strs."""
-        if turn.move == 'U':
-            self.faces['U'][0], self.faces['R'][0], self.faces['F'][0] = \
-                self.faces['F'][0], self.faces['U'][0], self.faces['R'][0]
-            self.faces['U'][2], self.faces['R'][3], self.faces['F'][1] = \
-                self.faces['F'][1], self.faces['U'][2], self.faces['R'][3]
-            self.faces['U'][4], self.faces['R'][1], self.faces['F'][2] = \
-                self.faces['F'][2], self.faces['U'][4], self.faces['R'][1]
-            self.faces['U'][3], self.faces['R'][2], self.faces['F'][4] = \
-                self.faces['F'][4], self.faces['U'][3], self.faces['R'][2]
-        elif turn.move == 'R':
-            self.faces['B'][0], self.faces['D'][0], self.faces['R'][0] = \
-                self.faces['R'][0], self.faces['B'][0], self.faces['D'][0]
-            self.faces['B'][4], self.faces['D'][2], self.faces['R'][2] = \
-                self.faces['R'][2], self.faces['B'][4], self.faces['D'][2]
-            self.faces['B'][1], self.faces['D'][3], self.faces['R'][3] = \
-                self.faces['R'][3], self.faces['B'][1], self.faces['D'][3]
-            self.faces['B'][3], self.faces['D'][4], self.faces['R'][4] = \
-                self.faces['R'][4], self.faces['B'][3], self.faces['D'][4]
-        elif turn.move == 'L':
-            self.faces['D'][0], self.faces['L'][0], self.faces['F'][0] = \
-                self.faces['F'][0], self.faces['D'][0], self.faces['L'][0]
-            self.faces['D'][2], self.faces['L'][3], self.faces['F'][1] = \
-                self.faces['F'][1], self.faces['D'][2], self.faces['L'][3]
-            self.faces['D'][1], self.faces['L'][4], self.faces['F'][3] = \
-                self.faces['F'][3], self.faces['D'][1], self.faces['L'][4]
-            self.faces['D'][3], self.faces['L'][2], self.faces['F'][4] = \
-                self.faces['F'][4], self.faces['D'][3], self.faces['L'][2]
-        elif turn.move == 'B':
-            self.faces['L'][0], self.faces['D'][0], self.faces['B'][0] = \
-                self.faces['B'][0], self.faces['L'][0], self.faces['D'][0]
-            self.faces['L'][4], self.faces['D'][4], self.faces['B'][2] = \
-                self.faces['B'][2], self.faces['L'][4], self.faces['D'][4]
-            self.faces['L'][1], self.faces['D'][1], self.faces['B'][3] = \
-                self.faces['B'][3], self.faces['L'][1], self.faces['D'][1]
-            self.faces['L'][3], self.faces['D'][3], self.faces['B'][4] = \
-                self.faces['B'][4], self.faces['L'][3], self.faces['D'][3]
-            
-        
+        ###Rotations
+        for i in range(1 + SkewbTurn.directions.index(turn.direction)):
+            if turn.move == 'x':
+                self.faces['F'], self.faces['U'], self.faces['B'], self.faces['D'] = \
+                self.faces['D'], self.faces['F'], self.faces['U'], self.faces['B']
+                self.faces['R'] = rotate_cw(self.faces['R'])
+                self.faces['L'] = rotate_ccw(self.faces['L'])
+            elif turn.move == 'y':
+                self.faces['F'], self.faces['L'], self.faces['B'], self.faces['R'] = \
+                self.faces['R'], self.faces['F'], rotate_2(self.faces['L']), rotate_2(self.faces['B'])
+                self.faces['U'] = rotate_cw(self.faces['U'])
+                self.faces['D'] = rotate_ccw(self.faces['D'])
+            elif turn.move == 'z':
+                self.faces['U'], self.faces['R'], self.faces['D'], self.faces['L'] = \
+                map(rotate_cw, [self.faces['L'], self.faces['U'], self.faces['R'], self.faces['D']])
+                self.faces['F'] = rotate_cw(self.faces['F'])
+                self.faces['B'] = rotate_ccw(self.faces['B'])
+
+        ###Axis turns
+        for i in range(2 if turn.direction else 1):
+            if turn.move == 'U':
+                (self.faces['U'][0], self.faces['R'][0], self.faces['F'][0],
+                self.faces['U'][2], self.faces['R'][3], self.faces['F'][1],
+                self.faces['U'][4], self.faces['R'][1], self.faces['F'][2],
+                self.faces['U'][3], self.faces['R'][2], self.faces['F'][4]) = \
+                    (self.faces['F'][0], self.faces['U'][0], self.faces['R'][0],
+                    self.faces['F'][1], self.faces['U'][2], self.faces['R'][3],
+                    self.faces['F'][2], self.faces['U'][4], self.faces['R'][1],
+                    self.faces['F'][4], self.faces['U'][3], self.faces['R'][2])
+            elif turn.move == 'R':
+                (self.faces['B'][0], self.faces['D'][0], self.faces['R'][0],
+                self.faces['B'][4], self.faces['D'][2], self.faces['R'][2],
+                self.faces['B'][1], self.faces['D'][3], self.faces['R'][3],
+                self.faces['B'][3], self.faces['D'][4], self.faces['R'][4]) = \
+                    (self.faces['R'][0], self.faces['B'][0], self.faces['D'][0],
+                    self.faces['R'][2], self.faces['B'][4], self.faces['D'][2],
+                    self.faces['R'][3], self.faces['B'][1], self.faces['D'][3],
+                    self.faces['R'][4], self.faces['B'][3], self.faces['D'][4])
+            elif turn.move == 'L':
+                (self.faces['D'][0], self.faces['L'][0], self.faces['F'][0],
+                self.faces['D'][2], self.faces['L'][3], self.faces['F'][1],
+                self.faces['D'][1], self.faces['L'][4], self.faces['F'][3],
+                self.faces['D'][3], self.faces['L'][2], self.faces['F'][4]) = \
+                    (self.faces['F'][0], self.faces['D'][0], self.faces['L'][0],
+                    self.faces['F'][1], self.faces['D'][2], self.faces['L'][3],
+                    self.faces['F'][3], self.faces['D'][1], self.faces['L'][4],
+                    self.faces['F'][4], self.faces['D'][3], self.faces['L'][2])
+            elif turn.move == 'B':
+                (self.faces['L'][0], self.faces['D'][0], self.faces['B'][0],
+                self.faces['L'][4], self.faces['D'][4], self.faces['B'][2],
+                self.faces['L'][1], self.faces['D'][1], self.faces['B'][3],
+                self.faces['L'][3], self.faces['D'][3], self.faces['B'][4]) = \
+                    (self.faces['B'][0], self.faces['L'][0], self.faces['D'][0],
+                    self.faces['B'][2], self.faces['L'][4], self.faces['D'][4],
+                    self.faces['B'][3], self.faces['L'][1], self.faces['D'][1],
+                    self.faces['B'][4], self.faces['L'][3], self.faces['D'][3])
+    
     def __eq__(self, other):
         """Return true if all stickers match."""
         return self.faces == other.faces
