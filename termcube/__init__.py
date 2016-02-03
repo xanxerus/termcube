@@ -1,7 +1,8 @@
+from .cube.turn import Turn
 class TurnSequence(list):
     """Represent a sequence of Turns.
     """
-    def __init__(self, iterable=None, turntype=None):
+    def __init__(self, iterable=None, turntype=Turn):
         """Initilize self with a given iterable. If the iterable is a
         string, split it along whitespace and convert each to a Turn
         before initilizing.
