@@ -3,10 +3,8 @@ from . import solve
 from .turn import Turn
 from .. import TurnSequence
 
-from queue import Queue
 from sys import stderr
 from time import sleep, time
-from threading import Thread
 
 help_text = \
 """Term Cube Simulator Interactive Mode
@@ -47,6 +45,12 @@ class Cube:
         """Initialize a Cube with a given dimension in a solved state."""
         self.size = size
         self.reset()
+        if size <= 1:
+            self.default_moves = 0
+        elif size <= 7:
+            self.default_moves = {2:11, 3:25, 4:40, 5:60, 6:80, 7:100}[size]
+        else:
+            self.default_moves = 120
 
     def reset(self):
         """Initialize all sides to unique solid colors."""
@@ -64,20 +68,32 @@ class Cube:
     def random_scramble(self):
         return scramble.scramble()
 
-    def get_scramble(self, random = True, moves = -1):
+    def get_scramble(self, random = True, moves = None):
         """Generate and return a scramble without applying."""
         if random and self.size == 3:
             return scramble.scramble()
-        elif moves is not None and moves > 1:
-            return Turn.get_scramble(self.size, moves)
-        else:
-            return Turn.get_scramble(self.size)
+        
+        if moves is None or moves <= 0:
+            moves = self.default_moves
+
+        ret = TurnSequence()
+
+        last = Turn('F')
+        turn = Turn('F')
+
+        for lcv in range(moves):
+            while turn.move == last.move or turn.opposite_face() == last.move:
+                turn = Turn.random_turn(self.size)
+            last = turn
+            ret.append(turn)
+
+        return ret
 
     def apply(self, sequence):
         """Apply a given TurnSequence to this Cube. If a str was given,
         convert to TurnSequence then apply.
         """
-        for turn in TurnSequence(sequence):
+        for turn in TurnSequence(sequence, Turn):
             self.apply_turn(turn)
         return self
 
@@ -299,46 +315,6 @@ class Cube:
                     self.apply(TurnSequence(usr))
                 except:
                     print('Invalid move: %s' % usr)
-
-class ScrambleGenerator():
-    def __init__(self, size = 3, random = True, length = -1, capacity = 10):
-        self.cube = Cube(size)
-        self.queue = Queue(max((capacity, 0)))
-        self.random = random
-        self.length = length
-        self.thread = Thread(target=self.enqueue_scramble)
-        self.stopped = False
-        self.thread.start()
-
-    def enqueue_scramble(self):
-        """Fill a given Queue with scramble until it is either full or a given capacity has been reached"""
-        while not self.stopped:
-            if not self.queue.full():
-                self.queue.put(self.cube.get_scramble(self.random, self.length))
-
-    def __next__(self):
-        """Remove and return the next scramble in the queue"""
-        return self.queue.get()
-
-    def __enter__(self):
-        """Start the scramble generating thread"""
-        if self.stopped:
-            self.stopped = False
-            self.thread.start()
-        return self
-
-    def __exit__(self, type = None, value = None, traceback = None):
-        """Stop the scramble generating thread"""
-        if not self.stopped:
-            self.stopped = True
-            self.thread.join()
-
-    def __iter__(self):
-        """Make this generator iterable by return itself"""
-        return self
-
-    start, stop = __enter__, __exit__
-
 
 def demo_random_turns(n = 3):
     from time import sleep

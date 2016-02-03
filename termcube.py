@@ -95,7 +95,7 @@ def main():
         try:
             options.puzzle = cube.Cube(int(options.puzzle))
         except:
-            print("Puzzle type %s not applicable. Exiting." % puzzle)
+            print("Puzzle type %s not applicable. Exiting." % options.puzzle)
             sys.exit(0)
     
     """Regarding the value of options.unofficial:
@@ -119,4 +119,7 @@ def main():
         parser.print_help()
 
 if __name__=='__main__':
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass

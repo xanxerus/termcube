@@ -82,10 +82,9 @@ Available commands:
                         scr.getch()
                     scr.nodelay(0)
             else:
-                addcenter(scr, 'This puzzle has no solver as of yet')
-                scr.nodelay(1)
-                scr.getch()
+                addcenter(scr, 'This puzzle has no solver as of yet', starty = 0, clear = False)
                 scr.nodelay(0)
+                scr.getch()
         elif command == ':scramble':
             scr.addstr(0, 0, str(self.puzzle.scramble()))
         elif command == ':exit':

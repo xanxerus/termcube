@@ -36,7 +36,7 @@ class SkewbTurn():
 
     def opposite_direction(self):
         """Return the face opposite direction of this Turn."""
-        return SkewbTurn.directions[abs(self.directions.index(self.direction) - 1)]
+        return SkewbTurn.directions[-SkewbTurn.directions.index(self.direction)-1]
 
     def inverse(self):
         """Return the Turn that undoes this one."""
@@ -80,6 +80,7 @@ class Skewb():
         """Initialize a Skewb in a solved state."""
         self.reset()
         self.size = 3
+        self.default_moves = 25
     
     def reset(self):
         """Initialize all sides to unique solid colors."""
@@ -94,14 +95,17 @@ class Skewb():
         self.apply(s)
         return s
 
-    def get_scramble(self, random = False, moves = 25):
+    def get_scramble(self, random = False, moves = None):
         """Generate and return a scramble without applying."""
+        if moves is None or moves <= 0:
+            moves = self.default_moves
+
         ret = TurnSequence()
 
         last = SkewbTurn('R')
         turn = SkewbTurn('R')
 
-        for lcv in range(moves):
+        for lcv in range(moves if moves else 25):
             while turn.move == last.move or turn.opposite_face() == last.move:
                 turn = SkewbTurn.random_turn()
             last = turn
@@ -112,7 +116,7 @@ class Skewb():
         """Apply a given TurnSequence to this Skewb. If a str was given,
         convert to TurnSequence then apply.
         """
-        for turn in TurnSequence(sequence):
+        for turn in TurnSequence(sequence, SkewbTurn):
             self.apply_turn(turn)
         return self
 

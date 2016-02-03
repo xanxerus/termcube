@@ -1,4 +1,5 @@
-from .cube import Cube, ScrambleGenerator
+from .cube import Cube
+from .scrambler import ScrambleGenerator
 from .simulator import Simulator, addcenter
 from . import TurnSequence
 
@@ -345,7 +346,7 @@ Available commands:
 :del        - Delete a solve (default last)
 :help       - Display this help text"""
 
-    def __init__(self, puzzle, inspection = 15, random = True, length = -1):
+    def __init__(self, puzzle, inspection = 15, random = True, length = None):
         super(CursesTimer, self).__init__(puzzle)
         self.inspection = inspection
         self.random = random
@@ -600,7 +601,7 @@ Available commands:
         self.w = curses.newwin(4*height, maxx//2, height, 0)
         self.e = curses.newwin(maxy - height - 10, maxx//2, height + 8, maxx//2)
         self.r = curses.newwin(8, maxx//2, height, maxx//2)
-        self.printcube(self.w)
+        self.printpuzzle(self.w)
         self.refresh()
 
     def refresh(self):

@@ -1,7 +1,7 @@
 from .pykociemba.coordcube import CoordCube, getPruning
 from .pykociemba.cubiecube import CubieCube
 from .. import TurnSequence
-
+from .turn import Turn
 from random import randrange, shuffle
 from threading import Thread
 from time import time
@@ -10,7 +10,7 @@ ax_to_s = ["U", "R", "F", "D", "L", "B"]
 po_to_s = [None, " ", "2 ", "' "]
 
 def scramble(maxDepth = 24, timeOut = 1000, useSeparator = False):
-    return TurnSequence(_attemptScramble()).inverse()
+    return TurnSequence(_attemptScramble(), Turn).inverse()
 
 def _attemptScramble(maxDepth = 24, timeOut = 1000, useSeparator = False):
     cp = list(range(8))
