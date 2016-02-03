@@ -25,12 +25,12 @@ class Cube:
     Allow visualization using ANSI color codes in terminal or
     using the visualcube API.
     """
-    sticker = {'F': '\033[47m  \033[0m',
-               'R': '\033[41m  \033[0m',
-               'U': '\033[44m  \033[0m',
-               'D': '\033[42m  \033[0m',
-               'L': '\033[45m  \033[0m',
-               'B': '\033[43m  \033[0m'}
+    sticker = {'F': '\033[47m \033[0m',
+               'R': '\033[41m \033[0m',
+               'U': '\033[44m \033[0m',
+               'D': '\033[42m \033[0m',
+               'L': '\033[45m \033[0m',
+               'B': '\033[43m \033[0m'}
 
     color =   {'F': 'w',
                'R': 'r',
@@ -213,11 +213,7 @@ class Cube:
 
     def __str__(self):
         """Return an ANSI color representation of this Cube"""
-        ret = self.simulatorstr()
-        for f in self.faces:
-            ret.replace(f, C.sticker[f])
-        
-        return ret
+        return ''.join(Cube.sticker[f] if f in Cube.sticker else f for f in self.simulatorstr())
 
     def kociemba_str(self):
         """Return this cube in kociemba-friendly sticker format."""
@@ -311,10 +307,10 @@ class Cube:
             elif usr == 'help':
                 print(help_text)
             else:
-                try:
-                    self.apply(TurnSequence(usr))
-                except:
-                    print('Invalid move: %s' % usr)
+                #~ try:
+                    self.apply(TurnSequence(usr, Turn))
+                #~ except Exception as e:
+                    #~ print('%s: %s' % (e, usr))
 
 def demo_random_turns(n = 3):
     from time import sleep

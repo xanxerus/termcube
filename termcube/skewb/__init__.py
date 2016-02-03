@@ -47,7 +47,7 @@ class SkewbTurn():
         """Return a Turn with a random face, direction, and depth
         less than or equal to half the given cube dimension.
         """
-        return SkewbTurn(choice(SkewbTurn.faces), choice(SkewbTurn.directions))
+        return SkewbTurn(choice(SkewbTurn.faces), choice(('', "'")))
 
     def __str__(self):
         """Return this turn using WCA notation."""
@@ -60,12 +60,12 @@ class SkewbTurn():
         return 'SkewbTurn(move=%s, direction=%s)' % (self.move, self.direction)
 
 class Skewb():
-    sticker = {'F': '\033[47m  \033[0m',
-               'R': '\033[41m  \033[0m',
-               'U': '\033[44m  \033[0m',
-               'D': '\033[42m  \033[0m',
-               'L': '\033[45m  \033[0m',
-               'B': '\033[43m  \033[0m'}
+    sticker = {'F': '\033[47m \033[0m',
+               'R': '\033[41m \033[0m',
+               'U': '\033[44m \033[0m',
+               'D': '\033[42m \033[0m',
+               'L': '\033[45m \033[0m',
+               'B': '\033[43m \033[0m'}
 
     color =   {'F': 'w',
                'R': 'r',
@@ -151,6 +151,8 @@ class Skewb():
                     self.faces['F'][1], self.faces['U'][2], self.faces['R'][3],
                     self.faces['F'][2], self.faces['U'][4], self.faces['R'][1],
                     self.faces['F'][4], self.faces['U'][3], self.faces['R'][2])
+                (self.faces['L'][2], self.faces['B'][1], self.faces['D'][2]) = \
+                    (self.faces['D'][2], self.faces['L'][2], self.faces['B'][1])
             elif turn.move == 'R':
                 (self.faces['B'][0], self.faces['D'][0], self.faces['R'][0],
                 self.faces['B'][4], self.faces['D'][2], self.faces['R'][2],
@@ -160,6 +162,8 @@ class Skewb():
                     self.faces['R'][2], self.faces['B'][4], self.faces['D'][2],
                     self.faces['R'][3], self.faces['B'][1], self.faces['D'][3],
                     self.faces['R'][4], self.faces['B'][3], self.faces['D'][4])
+                (self.faces['U'][2], self.faces['L'][3], self.faces['F'][4]) = \
+                    (self.faces['F'][4], self.faces['U'][2], self.faces['L'][3])
             elif turn.move == 'L':
                 (self.faces['D'][0], self.faces['L'][0], self.faces['F'][0],
                 self.faces['D'][2], self.faces['L'][3], self.faces['F'][1],
@@ -169,6 +173,8 @@ class Skewb():
                     self.faces['F'][1], self.faces['D'][2], self.faces['L'][3],
                     self.faces['F'][3], self.faces['D'][1], self.faces['L'][4],
                     self.faces['F'][4], self.faces['D'][3], self.faces['L'][2])
+                (self.faces['R'][3], self.faces['B'][4], self.faces['U'][3]) = \
+                    (self.faces['U'][3], self.faces['R'][3], self.faces['B'][4])
             elif turn.move == 'B':
                 (self.faces['L'][0], self.faces['D'][0], self.faces['B'][0],
                 self.faces['L'][4], self.faces['D'][4], self.faces['B'][2],
@@ -178,7 +184,8 @@ class Skewb():
                     self.faces['B'][2], self.faces['L'][4], self.faces['D'][4],
                     self.faces['B'][3], self.faces['L'][1], self.faces['D'][1],
                     self.faces['B'][4], self.faces['L'][3], self.faces['D'][3])
-    
+                (self.faces['U'][1], self.faces['R'][4], self.faces['F'][3]) = \
+                    (self.faces['F'][3], self.faces['U'][1], self.faces['R'][4])
     def __eq__(self, other):
         """Return true if all stickers match."""
         return self.faces == other.faces
@@ -214,11 +221,8 @@ class Skewb():
             304
         where each digit is the sticker's index in its face array.
         """
-        ret = self.simulatorstr()
-        for f in self.faces:
-            ret.replace(f, Skewb.sticker[f])
-        
-        return ret
+        return ''.join(Skewb.sticker[f] if f in Skewb.sticker else f for f in self.simulatorstr())
+
 
     __repr__ = __str__
     
@@ -262,6 +266,6 @@ class Skewb():
                 print(help_text)
             else:
                 try:
-                    self.apply(TurnSequence(usr))
+                    self.apply(TurnSequence(usr, SkewbTurn))
                 except Exception as e:
                     print('%s\nInvalid move: %s' % (e, usr))

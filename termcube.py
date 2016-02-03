@@ -110,7 +110,7 @@ def main():
               length = options.unofficial if options.unofficial else -1,
               nocurses = options.nocurses)
     elif options.behaviour == 'simulator':
-        simulator.simulate(options.puzzle)
+        simulator.simulate(options.puzzle, options.nocurses)
     elif options.behaviour == 'demo-kociemba':
         cube.demo_kociemba();
     elif options.behaviour == 'random-turns':

@@ -8,9 +8,12 @@ import re
 
 try:
     import curses
-    nocurses = False
 except:
-    nocurses = True
+    pass
+
+class NoCursesException(Exception):
+    def __init__(self, puzzle):
+        self.puzzle = puzzle
 
 class Simulator():
     help_text = \
@@ -36,12 +39,8 @@ Available commands:
         self.puzzle = puzzle if puzzle else Cube(3)
         self.turn = self.puzzle.turn_type
 
-    def __call__(self, scr, nocurses):
+    def __call__(self, scr):
         self.initialize(scr)
-
-        if nocurses:
-            self.puzzle.interact()
-            return
 
         m = ''
         while m != chr(27):
@@ -83,10 +82,12 @@ Available commands:
                     scr.nodelay(0)
             else:
                 addcenter(scr, 'This puzzle has no solver as of yet', starty = 0, clear = False)
-                scr.nodelay(0)
                 scr.getch()
         elif command == ':scramble':
-            scr.addstr(0, 0, str(self.puzzle.scramble()))
+            scramble = self.puzzle.scramble()
+            self.printpuzzle(scr)
+            addcenter(scr, scramble, starty = 0, clear = False)
+            scr.getch()
         elif command == ':exit':
             exit(0)
         elif command == ':help':
@@ -112,9 +113,7 @@ Available commands:
     def initialize(self, scr):
         self.scr = scr
         if not curses.has_colors():
-            global nocurses
-            nocurses = True
-            return
+            raise NoCursesException(self.puzzle)
 
         curses.init_pair(ord('F') - 60, curses.COLOR_WHITE, curses.COLOR_WHITE)
         curses.init_pair(ord('R') - 60, curses.COLOR_WHITE, curses.COLOR_RED)
@@ -192,5 +191,13 @@ def addcenter(scr, msg, starty = None, startx = None, clear = True):
     if clear:
         scr.refresh()
 
-def simulate(size = 3, nocurses = False):
-    curses.wrapper(Simulator(size), nocurses)
+def simulate(puzzle = 3, nocurses = False):
+    if not nocurses:
+        try:
+            curses.wrapper(Simulator(puzzle))
+        except NoCursesException as e:
+            e.puzzle.interact()
+        except NameError:
+            (puzzle if puzzle else Cube(3)).interact()
+    else:
+        (puzzle if puzzle else Cube(3)).interact()
