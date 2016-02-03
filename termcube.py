@@ -74,7 +74,7 @@ def prompt_args():
 
     
     if usr == 1 or usr == 2:
-        options.nocurses = not prompt_str("Use curses? (y/n) (default yes): ", default='y').startswith('y')
+        options.nocurses = not prompt_ln("Use curses? (y/n) (default yes): ", default='y').startswith('y')
     
     options.inspection = 15.0
     options.unofficial = -1

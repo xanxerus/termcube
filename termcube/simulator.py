@@ -18,8 +18,9 @@ class Simulator():
 
 Manipulate a virtual cube using cube notation!
 
-Press F, R, U, L, D, B, M, E, S, X, Y, or Z to turn the cube.
+Press a letter key the corresponding turn.
 Hold shift and press to do the reverse of that turn.
+Start with a number to start deep-layered turns
 
 Press : to initiate a command or type a longer string of notation.
 
@@ -90,12 +91,14 @@ Available commands:
         elif command == ':exit':
             exit(0)
         elif command == ':help':
-            Simulator.cornerandwait(scr, Simulator.helptext)
+            Simulator.cornerandwait(scr, Simulator.help_text)
         else:
             try:
-                self.apply(TurnSequence(command))
-            except:
-                scr.addstr(0, 0, 'Invalid move: %s' % command)
+                self.puzzle.apply(TurnSequence(command[1:], self.puzzle.turn_type))
+            except Exception as e:
+                scr.addstr(0, 0, '%s -- %s' % (e, command[1:]))
+                scr.refresh()
+                scr.getch()
 
     @staticmethod
     def cornerandwait(scr, msg):

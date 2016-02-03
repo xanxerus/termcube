@@ -1,13 +1,13 @@
 class TurnSequence(list):
     """Represent a sequence of Turns.
     """
-    def __init__(self, iterable=None):
+    def __init__(self, iterable=None, turntype=None):
         """Initilize self with a given iterable. If the iterable is a
         string, split it along whitespace and convert each to a Turn
         before initilizing.
         """
         if isinstance(iterable, str):
-            super(TurnSequence, self).__init__([Turn(s) for s in iterable.split()])
+            super(TurnSequence, self).__init__([turntype(s) for s in iterable.split()])
         elif hasattr(iterable, 'random_turn'):
             super(TurnSequence, self).__init__([iterable])
         elif iterable:

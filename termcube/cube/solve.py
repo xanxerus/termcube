@@ -1,3 +1,4 @@
+from .turn import Turn
 from .pykociemba import search
 from .. import TurnSequence
 
@@ -20,4 +21,4 @@ def solve(facelets, maxDepth = 24, timeOut = 1000, useSeparator = False):
     if res in errors:
         return errors[res], time() - t
     else:
-        return TurnSequence(res), time() - t
+        return TurnSequence(res, Turn), time() - t

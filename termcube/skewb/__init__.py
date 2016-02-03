@@ -123,18 +123,18 @@ class Skewb():
             if turn.move == 'x':
                 self.faces['F'], self.faces['U'], self.faces['B'], self.faces['D'] = \
                 self.faces['D'], self.faces['F'], self.faces['U'], self.faces['B']
-                self.faces['R'] = rotate_cw(self.faces['R'])
-                self.faces['L'] = rotate_ccw(self.faces['L'])
+                self.faces['R'] = Skewb.rotate_cw(self.faces['R'])
+                self.faces['L'] = Skewb.rotate_ccw(self.faces['L'])
             elif turn.move == 'y':
                 self.faces['F'], self.faces['L'], self.faces['B'], self.faces['R'] = \
-                self.faces['R'], self.faces['F'], rotate_2(self.faces['L']), rotate_2(self.faces['B'])
-                self.faces['U'] = rotate_cw(self.faces['U'])
-                self.faces['D'] = rotate_ccw(self.faces['D'])
+                self.faces['R'], self.faces['F'], Skewb.rotate_2(self.faces['L']), Skewb.rotate_2(self.faces['B'])
+                self.faces['U'] = Skewb.rotate_cw(self.faces['U'])
+                self.faces['D'] = Skewb.rotate_ccw(self.faces['D'])
             elif turn.move == 'z':
                 self.faces['U'], self.faces['R'], self.faces['D'], self.faces['L'] = \
-                map(rotate_cw, [self.faces['L'], self.faces['U'], self.faces['R'], self.faces['D']])
-                self.faces['F'] = rotate_cw(self.faces['F'])
-                self.faces['B'] = rotate_ccw(self.faces['B'])
+                map(Skewb.rotate_cw, [self.faces['L'], self.faces['U'], self.faces['R'], self.faces['D']])
+                self.faces['F'] = Skewb.rotate_cw(self.faces['F'])
+                self.faces['B'] = Skewb.rotate_ccw(self.faces['B'])
 
         ###Axis turns
         for i in range(2 if turn.direction else 1):
