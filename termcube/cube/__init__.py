@@ -1,6 +1,7 @@
 from . import scramble
 from . import solve
-from .turn import Turn, TurnSequence
+from .turn import Turn
+from .. import TurnSequence
 
 from queue import Queue
 from sys import stderr
@@ -19,19 +20,6 @@ Available commands:
 -scramble   - Print a scramble apply it
 -exit       - Exit interactive mode (change cube)
 -help       - Access this help text"""
-
-def rotate_cw(face):
-    """Returns a clockwise rotated version of a given 2D list"""
-    return [list(a) for a in zip(*face[::-1])]
-
-def rotate_ccw(face):
-    """Returns a counterclockwise rotated version of a given 2D list"""
-    return [list(a) for a in zip(*face)][::-1]
-
-def rotate_2(face):
-    """Returns a 180 degree rotated version of a given 2D list"""
-    return [a[::-1] for a in face[::-1]]
-
 
 class Cube:
     """Represent a Cube with a given side length.
@@ -53,6 +41,8 @@ class Cube:
                'L': 'o',
                'B': 'y'}
 
+    turn_type = Turn
+
     def __init__(self, size = 3):
         """Initialize a Cube with a given dimension in a solved state."""
         self.size = size
@@ -70,6 +60,9 @@ class Cube:
         s = self.get_scramble(random, moves)
         self.apply(s)
         return s
+
+    def random_scramble(self):
+        return scramble.scramble()
 
     def get_scramble(self, random = True, moves = -1):
         """Generate and return a scramble without applying."""
@@ -94,18 +87,18 @@ class Cube:
             if turn.move == 'x':
                 self.faces['F'], self.faces['U'], self.faces['B'], self.faces['D'] = \
                 self.faces['D'], self.faces['F'], self.faces['U'], self.faces['B']
-                self.faces['R'] = rotate_cw(self.faces['R'])
-                self.faces['L'] = rotate_ccw(self.faces['L'])
+                self.faces['R'] = Cube.rotate_cw(self.faces['R'])
+                self.faces['L'] = Cube.rotate_ccw(self.faces['L'])
             elif turn.move == 'y':
                 self.faces['F'], self.faces['L'], self.faces['B'], self.faces['R'] = \
-                self.faces['R'], self.faces['F'], rotate_2(self.faces['L']), rotate_2(self.faces['B'])
-                self.faces['U'] = rotate_cw(self.faces['U'])
-                self.faces['D'] = rotate_ccw(self.faces['D'])
+                self.faces['R'], self.faces['F'], Cube.rotate_2(self.faces['L']), Cube.rotate_2(self.faces['B'])
+                self.faces['U'] = Cube.rotate_cw(self.faces['U'])
+                self.faces['D'] = Cube.rotate_ccw(self.faces['D'])
             elif turn.move == 'z':
                 self.faces['U'], self.faces['R'], self.faces['D'], self.faces['L'] = \
-                map(rotate_cw, [self.faces['L'], self.faces['U'], self.faces['R'], self.faces['D']])
-                self.faces['F'] = rotate_cw(self.faces['F'])
-                self.faces['B'] = rotate_ccw(self.faces['B'])
+                map(Cube.rotate_cw, [self.faces['L'], self.faces['U'], self.faces['R'], self.faces['D']])
+                self.faces['F'] = Cube.rotate_cw(self.faces['F'])
+                self.faces['B'] = Cube.rotate_ccw(self.faces['B'])
             elif turn.move == 'M':
                 self.apply("x' R L'")
             elif turn.move == 'E':
@@ -114,7 +107,7 @@ class Cube:
                 self.apply("z B F'")
 
             if turn.move in Turn.faces:
-                self.faces[turn.move] = rotate_cw(self.faces[turn.move])
+                self.faces[turn.move] = Cube.rotate_cw(self.faces[turn.move])
                 for g in range(1, turn.depth+1):
                     for q in range(self.size):
                         if turn.move == 'F':
@@ -177,30 +170,37 @@ class Cube:
         """Return true if all stickers match."""
         return self.faces == other.faces
 
-    def __str__(self):
-        """Return an ANSI color representation of this Cube."""
+    def simulatorstr(self):
         ret = ''
         for r in self.faces['U']:
             ret += '  '*self.size
             for c in r:
-                ret += Cube.sticker[c]
+                ret += c*2
             ret += '\n'
 
         for r in range(self.size):
             for c in self.faces['L'][r]:
-                ret += Cube.sticker[c]
-            for c in range(self.size):
-                ret += Cube.sticker[self.faces['F'][r][c]]
+                ret += c*2
+            for c in self.faces['F'][r]:
+                ret += c*2
             for c in self.faces['R'][r]:
-                ret += Cube.sticker[c]
+                ret += c*2
             ret += '\n'
 
         for r in self.faces['D'] + self.faces['B']:
             ret += '  '*self.size
             for c in r:
-                ret += Cube.sticker[c]
+                ret += c*2
             ret += '\n'
 
+        return ret
+
+    def __str__(self):
+        """Return an ANSI color representation of this Cube"""
+        ret = self.simulatorstr()
+        for f in self.faces:
+            ret.replace(f, C.sticker[f])
+        
         return ret
 
     def kociemba_str(self):
@@ -210,7 +210,7 @@ class Cube:
         ret += ''.join(''.join(arr) for arr in self.faces['F'])
         ret += ''.join(''.join(arr) for arr in self.faces['D'])
         ret += ''.join(''.join(arr) for arr in self.faces['L'])
-        ret += ''.join(''.join(arr) for arr in rotate_2(self.faces['B']))
+        ret += ''.join(''.join(arr) for arr in Cube.rotate_2(self.faces['B']))
 
         q = dict()
         for s in 'FRULDB':
@@ -218,7 +218,7 @@ class Cube:
 
         return list(q[Cube.color[s]] for s in ret)
 
-    def two_phase_solution(self):
+    def solution(self):
         """Find a solution using Kociemba's two phase algoithm."""
         try:
             assert self.size == 3
@@ -247,11 +247,26 @@ class Cube:
                 for c in r:
                     facelet_colors += Cube.color[c]
 
-        for r in rotate_2(self.faces['B']):
+        for r in Cube.rotate_2(self.faces['B']):
             for c in r:
                 facelet_colors += Cube.color[c]
 
         return 'http://cube.crider.co.uk/visualcube.php?fmt=gif&pzl=%s&fc=%s' % (self.size, facelet_colors)
+
+    @staticmethod
+    def rotate_cw(face):
+        """Returns a clockwise rotated version of a given 2D list"""
+        return [list(a) for a in zip(*face[::-1])]
+
+    @staticmethod
+    def rotate_ccw(face):
+        """Returns a counterclockwise rotated version of a given 2D list"""
+        return [list(a) for a in zip(*face)][::-1]
+
+    @staticmethod
+    def rotate_2(face):
+        """Returns a 180 degree rotated version of a given 2D list"""
+        return [a[::-1] for a in face[::-1]]
 
     def interact(self):
         """Read, evaluate, print, and loop commands. See help text."""

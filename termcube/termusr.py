@@ -1,6 +1,6 @@
 from .cube import Cube, ScrambleGenerator
-from termcube.simulator import Simulator
-from .turn import TurnSequence
+from .simulator import Simulator, addcenter
+from . import TurnSequence
 
 from os.path import isfile
 from sys import exit
@@ -144,20 +144,6 @@ def prompt_ln(prompt = "Apply which tag(s)?: ", default = None, condition = None
         elif default != None:
             return default
 
-###Curses functions
-
-def addcenter(scr, msg, starty = None, startx = None, clear = True):
-    if clear:
-        scr.clear()
-    maxy, maxx = scr.getmaxyx()
-    msg = str(msg)
-    if maxy > 1:
-        scr.addstr(maxy//2 - 1 if starty is None else starty, (maxx - len(msg))//2 if startx is None else startx, msg)
-    else:
-        scr.addstr(maxy//2 if starty is None else starty, (maxx - len(msg))//2 if startx is None else startx, msg)
-    if clear:
-        scr.refresh()
-
 class Solve():
     def __init__(self, time, penalty, scramble):
         self.time = time
@@ -207,8 +193,8 @@ Available commands:
 -del        - Delete a solve
 -help       - Display this help text"""
 
-    def __init__(self, size = 3, inspection = 15, random = True, length = -1):
-        self.cube = Cube(size)
+    def __init__(self, puzzle = None, inspection = 15, random = True, length = -1):
+        self.puzzle = puzzle if puzzle else Cube(3)
         self.inspection = inspection
         self.random = random
         self.length = length
@@ -314,14 +300,14 @@ Available commands:
 
     def __call__(self):
         print('Initializing...')
-        with ScrambleGenerator(self.cube.size, self.random, self.length) as scrambler:
+        with ScrambleGenerator(self.puzzle, self.random, self.length) as scrambler:
             while True:
-                self.cube.reset()
-                self.cube.apply('x')
+                self.puzzle.reset()
+                self.puzzle.apply('x')
                 scramble = next(scrambler)
-                self.cube.apply(scramble)
+                self.puzzle.apply(scramble)
                 print('Solve %d' % self.solvenumber)
-                print(self.cube)
+                print(self.puzzle)
                 print(scramble, end=' ')
 
                 usr = input()
@@ -359,8 +345,8 @@ Available commands:
 :del        - Delete a solve (default last)
 :help       - Display this help text"""
 
-    def __init__(self, size = 3, inspection = 15, random = True, length = -1):
-        super(CursesTimer, self).__init__(size)
+    def __init__(self, puzzle, inspection = 15, random = True, length = -1):
+        super(CursesTimer, self).__init__(puzzle)
         self.inspection = inspection
         self.random = random
         self.length = length if not random else None
@@ -372,7 +358,7 @@ Available commands:
         self.initialize(scr)
         
         if nocurses:
-            return CLITimer(self.size, self.inspection, self.random, self.length).__call__(nocurses)
+            return CLITimer(self.puzzle, self.inspection, self.random, self.length).__call__(nocurses)
 
         addcenter(self.q, 'Term Cube Timer -- Press any key to start')
         addcenter(self.r, 'Confused? Try typing ":help"')
@@ -383,16 +369,16 @@ Available commands:
         addcenter(self.q, "Initializing...")
         self.q.refresh()
 
-        with ScrambleGenerator(self.size, self.random, self.length) as scrambler:
+        with ScrambleGenerator(self.puzzle, self.random, self.length) as scrambler:
             while True:
                 #Print statistics
                 self.printstats(self.r)
 
                 #Scramble
-                self.reset()
-                self.apply('x')
+                self.puzzle.reset()
+                self.puzzle.apply('x')
                 scramble = next(scrambler)
-                self.apply(scramble)
+                self.puzzle.apply(scramble)
 
                 #Throw out key presses during scramble wait
                 self.q.nodelay(1)
@@ -401,7 +387,7 @@ Available commands:
                 self.q.nodelay(0)
 
                 #Print Cube and Scramble
-                self.printcube(self.w)
+                self.printpuzzle(self.w)
                 self.w.refresh()
                 addcenter(self.q, scramble)
 
@@ -629,12 +615,13 @@ Available commands:
             s.refresh()
 
 #Main timer function
-def timer(size = 3, inspection = 15, random = True, length = -1, nocurses = False):
+def timer(puzzle = None, inspection = 15, random = True, length = -1, nocurses = False):
+    puzzle = puzzle if puzzle else Cube(3)
     #Main application
     if nocurses:
-        solves = CLITimer(size, inspection, random, length).__call__()
+        solves = CLITimer(puzzle, inspection, random, length).__call__()
     else:
-        solves = curses.wrapper(CursesTimer(size, inspection, random, length))
+        solves = curses.wrapper(CursesTimer(puzzle, inspection, random, length))
 
     #Exit
     print("Session has ended.")

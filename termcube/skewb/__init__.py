@@ -1,23 +1,10 @@
-#!/usr/bin/env python3
-
-from termcube.turn import Turn, TurnSequence
+from .. import TurnSequence
 from random import choice
 
-def rotate_cw(face):
-    """Returns a clockwise rotated version of a given 2D list"""
-    return list(face[i] for i in [0, 3, 1, 4, 2])
-
-def rotate_ccw(face):
-    """Returns a counterclockwise rotated version of a given 2D list"""
-    return list(face[i] for i in [0, 2, 4, 1, 3])
-
-def rotate_2(face):
-    """Returns a 180 degree rotated version of a given 2D list"""
-    return list(face[i] for i in [0, 4, 3, 2, 1])
-
-class SkewbTurn(Turn):
+class SkewbTurn():
     faces = ('R', 'U', 'L', 'B')
     axes = ('x', 'y', 'z')
+    directions = ('', '2', '\'')
     moves = faces + axes
     lower_faces = [s.lower() for s in faces]
 
@@ -26,7 +13,7 @@ class SkewbTurn(Turn):
         If a string of notation is given instead of a move,
         initialize the Turn based on the notation.
         """
-        if move in Turn.moves:
+        if move in SkewbTurn.moves:
             self.move, self.direction = move, direction
         else:
             self.move, self.direction =  move[0], move[1:]
@@ -34,6 +21,12 @@ class SkewbTurn(Turn):
                 self.direction = '2'
             if self.move in SkewbTurn.faces and self.direction == '2':
                 self.direction = "'"
+
+    def __eq__(self, other):
+        """Return true if the given Turns have the same move,
+        direction, and depth.
+        """
+        return str(self) == str(other)
 
     def opposite_face(self):
         """If the given turn has an opposite face, return it."""
@@ -80,6 +73,8 @@ class Skewb():
                'D': 'g',
                'L': 'o',
                'B': 'y'}
+
+    turn_type = SkewbTurn
 
     def __init__(self):
         """Initialize a Skewb in a solved state."""
@@ -184,20 +179,13 @@ class Skewb():
         """Return true if all stickers match."""
         return self.faces == other.faces
     
-    def __str__(self):
-        """Return an ANSI color representation of this Skewb.
-        A face within the array is defined as:
-            102
-            000
-            304
-        where each digit is the sticker's index in its face array.
-        """
+    def simulatorstr(self):
         ret = ''
         def halp(* faces):
             for arr in [[1, 0, 2], [0, 0, 0], [3, 0, 4]]:
                 ret = ''
                 for face in faces:
-                    ret += ''.join(Skewb.sticker[face[i]] for i in arr)
+                    ret += ''.join(face[i]*2 for i in arr)
                 yield ret
         
         for line in halp(self.faces['U']):
@@ -209,8 +197,22 @@ class Skewb():
         for line in halp(self.faces['D']):
             ret += '  '*self.size + line + '\n'
 
-        for line in halp(rotate_2(self.faces['B'])):
+        for line in halp(Skewb.rotate_2(self.faces['B'])):
             ret += '  '*self.size + line + '\n'
+        
+        return ret
+    
+    def __str__(self):
+        """Return an ANSI color representation of this Skewb.
+        A face within the array is defined as:
+            102
+            000
+            304
+        where each digit is the sticker's index in its face array.
+        """
+        ret = self.simulatorstr()
+        for f in self.faces:
+            ret.replace(f, Skewb.sticker[f])
         
         return ret
 
@@ -224,6 +226,21 @@ class Skewb():
                 if not all(map(lambda arg: arg == w, r)):
                     return False
         return True
+
+    @staticmethod
+    def rotate_cw(face):
+        """Returns a clockwise rotated version of a given 2D list"""
+        return list(face[i] for i in [0, 3, 1, 4, 2])
+
+    @staticmethod
+    def rotate_ccw(face):
+        """Returns a counterclockwise rotated version of a given 2D list"""
+        return list(face[i] for i in [0, 2, 4, 1, 3])
+
+    @staticmethod
+    def rotate_2(face):
+        """Returns a 180 degree rotated version of a given 2D list"""
+        return list(face[i] for i in [0, 4, 3, 2, 1])
 
     def interact(self):
         """Read, evaluate, print, and loop commands. See help text."""
@@ -244,5 +261,3 @@ class Skewb():
                     self.apply(TurnSequence(usr))
                 except Exception as e:
                     print('%s\nInvalid move: %s' % (e, usr))
-
-Skewb().interact()

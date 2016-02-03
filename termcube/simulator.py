@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 from sys import exit
+from . import TurnSequence
 from .cube import Cube
-from .turn import Turn, TurnSequence
+from .skewb import Skewb
 from time import sleep
+import re
 
 try:
     import curses
@@ -10,7 +12,7 @@ try:
 except:
     nocurses = True
 
-class Simulator(Cube):
+class Simulator():
     help_text = \
 """Term Cube Simulator (Curses implementation)
 
@@ -29,19 +31,20 @@ Available commands:
 :exit       - Exit interactive mode (change cube)
 :help       - Access this help text"""
     
-    def __init__(self, size = 3):
-        super(Simulator, self).__init__(size)
+    def __init__(self, puzzle = None):
+        self.puzzle = puzzle if puzzle else Cube(3)
+        self.turn = self.puzzle.turn_type
 
     def __call__(self, scr, nocurses):
         self.initialize(scr)
 
         if nocurses:
-            self.interact()
+            self.puzzle.interact()
             return
 
         m = ''
         while m != chr(27):
-            self.printcube(scr)
+            self.printpuzzle(scr)
             m = chr(scr.getch())
 
             if m in ':1234567890':
@@ -51,39 +54,43 @@ Available commands:
                 u = m.upper()
                 l = m.lower()
 
-                if u in Turn.moves or l in Turn.moves:
-                    if u in Turn.moves:
-                        t = Turn(u)
+                if u in self.turn.moves or l in self.turn.moves:
+                    if u in self.turn.moves:
+                        t = self.turn(u)
                     else:
-                        t = Turn(l)
+                        t = self.turn(l)
                     if m == u:
                         t = t.inverse()
-                    self.apply(t)
+                    self.puzzle.apply(t)
 
     def command(self, scr, command):
         if command == ':reset':
-            self.reset()
+            self.puzzle.reset()
         elif command == ':solve':
-            q = self.two_phase_solution()
-            scr.addstr(0, 0, str(q[0]))
-            scr.addstr(1, 0, 'Solve time: %.2f seconds' % q[1])
-            scr.addstr(2, 0, 'Apply this solution? (y/n): ')
-            if chr(scr.getch()) == 'y':
+            if hasattr(self.puzzle, 'solution'):
+                q = self.puzzle.solution()
+                scr.addstr(0, 0, str(q[0]))
+                scr.addstr(1, 0, 'Solve time: %.2f seconds' % q[1])
+                scr.addstr(2, 0, 'Apply this solution? (y/n): ')
+                if chr(scr.getch()) == 'y':
+                    scr.nodelay(1)
+                    for t in TurnSequence(q[0]):
+                        self.puzzle.apply_turn(t)
+                        self.printpuzzle(scr)
+                        curses.napms(100)
+                        scr.getch()
+                    scr.nodelay(0)
+            else:
+                addcenter(scr, 'This puzzle has no solver as of yet')
                 scr.nodelay(1)
-                for t in TurnSequence(q[0]):
-                    self.apply_turn(t)
-                    self.printcube(scr)
-                    curses.napms(100)
-                    scr.getch()
+                scr.getch()
                 scr.nodelay(0)
-        elif command == ':sexy':
-            self.apply("R U R' U'")
         elif command == ':scramble':
-            scr.addstr(0, 0, str(self.scramble()))
+            scr.addstr(0, 0, str(self.puzzle.scramble()))
         elif command == ':exit':
             exit(0)
         elif command == ':help':
-            Simulator.cornerandwait(scr, self.helptext)
+            Simulator.cornerandwait(scr, Simulator.helptext)
         else:
             try:
                 self.apply(TurnSequence(command))
@@ -155,41 +162,33 @@ Available commands:
 
         return ret
 
-    def printcube(self, scr):
+    def printpuzzle(self, scr):
         maxy, maxx = scr.getmaxyx()
-        assert not (maxx <= 3*self.size or maxy <= 3*self.size)
-
         scr.clear()
-        xinit = (maxx - 6*self.size) // 2 - 1
-        y = (maxy - 3*self.size) // 2 - 1
-
-        for r in self.faces['U']:
-            x = xinit + self.size*2
-            for c in r:
-                scr.addstr(y, x, '  ', curses.color_pair(ord(c) - 60))
-                x += 2
-            y += 1
-
-        for r in range(self.size):
+        y = (maxy - 3*self.puzzle.size) // 2 - 1
+        xinit = (maxx - 6*self.puzzle.size) // 2 - 1
+        
+        for line in self.puzzle.simulatorstr().split('\n'):
             x = xinit
-            for c in self.faces['L'][r]:
-                scr.addstr(y, x, '  ', curses.color_pair(ord(c) - 60))
-                x += 2
-            for c in self.faces['F'][r]:
-                scr.addstr(y, x, '  ', curses.color_pair(ord(c) - 60))
-                x += 2
-            for c in self.faces['R'][r]:
-                scr.addstr(y, x, '  ', curses.color_pair(ord(c) - 60))
-                x += 2
+            for c in line:
+                if c != ' ':
+                    scr.addstr(y, x, ' ', curses.color_pair(ord(c) - 60))
+                x += 1
             y += 1
-
-        for r in self.faces['D'] + self.faces['B']:
-            x = xinit + self.size*2
-            for c in r:
-                scr.addstr(y, x, '  ', curses.color_pair(ord(c) - 60))
-                x += 2
-            y += 1
+        
         scr.move(maxy-1, maxx-1)
+
+def addcenter(scr, msg, starty = None, startx = None, clear = True):
+    if clear:
+        scr.clear()
+    maxy, maxx = scr.getmaxyx()
+    msg = str(msg)
+    if maxy > 1:
+        scr.addstr(maxy//2 - 1 if starty is None else starty, (maxx - len(msg))//2 if startx is None else startx, msg)
+    else:
+        scr.addstr(maxy//2 if starty is None else starty, (maxx - len(msg))//2 if startx is None else startx, msg)
+    if clear:
+        scr.refresh()
 
 def simulate(size = 3, nocurses = False):
     curses.wrapper(Simulator(size), nocurses)

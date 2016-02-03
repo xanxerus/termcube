@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import re
 import sys
 from argparse import ArgumentParser, Namespace, RawDescriptionHelpFormatter
-from termcube import cube, simulator, turn
-from termcube.termusr import prompt_number, prompt_int, timer
+from termcube import cube, skewb, simulator
+from termcube.termusr import prompt_number, prompt_int, prompt_ln, timer
 
 epilog_text = \
 """possible behaviours:
@@ -19,8 +20,8 @@ parser = ArgumentParser(epilog = epilog_text, formatter_class = RawDescriptionHe
 parser.add_argument('behaviour', nargs='?', default='timer', type=str,
             help='timer, simulator, demo-kociemba, random-turns')
 
-parser.add_argument('size', nargs='?', default=3, type=int,
-            help='Cube side length (default 3)')
+parser.add_argument('puzzle', nargs='?', default='3', type=str,
+            help="Puzzle type -- either 'skewb' or a cube side length (default 3)")
 
 parser.add_argument('--inspection', '-i', default=15.0, type=float,
             help='The number of seconds to inspect (default 15)')
@@ -40,13 +41,18 @@ def prompt_args():
     usr = prompt_int("Select and option by its number: ", condition=lambda n: 1 <= n <= 4)
 
     options = Namespace()
+
+    if usr != 3:
+        options.puzzle = prompt_ln("Puzzle type -- either 'skewb' or a cube side length (default 3): ")
+
+    else:
+        options.puzzle = cube.Cube(3)
+
     if usr == 1:
         options.behaviour = 'timer'
-
-        options.size = prompt_int("Cube size (default 3): ", 3, lambda n: n > 0)
         options.inspection = prompt_number("Inspection time (default 15): ", 15.0)
 
-        if options.size == 3:
+        if hasattr(options.puzzle, 'random_scramble'):
             print('Use random state scrambles? This may lag on your computer. (default yes): ', end='')
             random = not input().startswith('n')
 
@@ -65,10 +71,7 @@ def prompt_args():
         options.behaviour = 'random-turns'
 
     #Set defaults
-    if usr != 3:
-        options.size = prompt_int("Choose a cube size (default 3): ", default=3, condition=lambda n: n > 1)
-    else:
-        options.size = 3
+
     
     if usr == 1 or usr == 2:
         options.nocurses = not prompt_str("Use curses? (y/n) (default yes): ", default='y').startswith('y')
@@ -86,23 +89,32 @@ def main():
     else:
         options = parser.parse_args()
 
+    if options.puzzle.lower() == 'skewb':
+        options.puzzle = skewb.Skewb()
+    else:
+        try:
+            options.puzzle = cube.Cube(int(options.puzzle))
+        except:
+            print("Puzzle type %s not applicable. Exiting." % puzzle)
+            sys.exit(0)
+    
     """Regarding the value of options.unofficial:
     if using a random state scramble, options.unofficial is None
     if using a random turn scramble of default length, options.unofficial is -1
     if using a random turn scramble with a specific length, option.unofficial is that length
     """
     if options.behaviour == 'timer':
-        timer(options.size, 
+        timer(options.puzzle, 
               options.inspection, 
               random = options.unofficial == None,
               length = options.unofficial if options.unofficial else -1,
               nocurses = options.nocurses)
     elif options.behaviour == 'simulator':
-        simulator.simulate(options.size)
+        simulator.simulate(options.puzzle)
     elif options.behaviour == 'demo-kociemba':
         cube.demo_kociemba();
     elif options.behaviour == 'random-turns':
-        cube.demo_random_turns(options.size)
+        cube.demo_random_turns(options.puzzle)
     else:
         parser.print_help()
 
