@@ -307,33 +307,7 @@ class Cube:
             elif usr == 'help':
                 print(help_text)
             else:
-                #~ try:
+                try:
                     self.apply(TurnSequence(usr, Turn))
-                #~ except Exception as e:
-                    #~ print('%s: %s' % (e, usr))
-
-def demo_random_turns(n = 3):
-    from time import sleep
-    r = Cube(n)
-    while True:
-        s = Turn.random_turn(n)
-        r.apply_turn(s)
-        print(s)
-        print(r)
-        sleep(.5)
-        if r.is_solved():
-            break
-    print('WOAH')
-
-def demo_kociemba():
-    print('Initializing...')
-    r = Cube(3)
-    with ScrambleGenerator() as scrambler:
-        while True:
-            r.apply(next(scrambler))
-            print(r)
-            for t in TurnSequence(r.two_phase_solution()[0]):
-                r.apply(t)
-                print(r)
-                sleep(.1)
-            sleep(1)
+                except Exception as e:
+                    print('%s: %s' % (e, usr))

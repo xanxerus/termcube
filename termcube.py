@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import re
+import time
 import sys
+
 from argparse import ArgumentParser, Namespace, RawDescriptionHelpFormatter
-from termcube import cube, skewb, simulator
+from termcube import cube, skewb, simulator, TurnSequence 
 from termcube.termusr import prompt_number, prompt_int, prompt_ln, timer
+from termcube.scrambler import ScrambleGenerator
 
 epilog_text = \
 """possible behaviours:
@@ -112,9 +115,26 @@ def main():
     elif options.behaviour == 'simulator':
         simulator.simulate(options.puzzle, options.nocurses)
     elif options.behaviour == 'demo-kociemba':
-        cube.demo_kociemba();
+        print('Initializing...')
+        with ScrambleGenerator(options.puzzle) as scrambler:
+            while True:
+                options.puzzle.apply(next(scrambler))
+                print(options.puzzle)
+                for t in TurnSequence(options.puzzle.solution()[0]):
+                    options.puzzle.apply(t)
+                    print(options.puzzle)
+                    time.sleep(.1)
+                time.sleep(1)
     elif options.behaviour == 'random-turns':
-        cube.demo_random_turns(options.puzzle)
+        while True:
+            s = options.puzzle.random_turn()
+            options.puzzle.apply(s)
+            print(s)
+            print(r)
+            time.sleep(.5)
+            if r.is_solved():
+                break
+        print('WOAH')
     else:
         parser.print_help()
 

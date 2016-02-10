@@ -59,6 +59,8 @@ class SkewbTurn():
         """
         return 'SkewbTurn(move=%s, direction=%s)' % (self.move, self.direction)
 
+from . import skewbscramble
+
 class Skewb():
     sticker = {'F': '\033[47m \033[0m',
                'R': '\033[41m \033[0m',
@@ -89,14 +91,17 @@ class Skewb():
         for face in 'FRULDB':
             self.faces[face] = [face]*5
 
-    def scramble(self, random = False, moves = 25):
+    def scramble(self, random = True, moves = 25):
         """Generate, apply, and return a scramble."""
         s = self.get_scramble(random, moves)
         self.apply(s)
         return s
 
-    def get_scramble(self, random = False, moves = None):
+    def get_scramble(self, random = True, moves = None):
         """Generate and return a scramble without applying."""
+        if random:
+            return skewbscramble.scramble()
+        
         if moves is None or moves <= 0:
             moves = self.default_moves
 
