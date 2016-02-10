@@ -361,16 +361,15 @@ Available commands:
         if nocurses:
             return CLITimer(self.puzzle, self.inspection, self.random, self.length).__call__(nocurses)
 
-        addcenter(self.q, 'Term Cube Timer -- Press any key to start')
-        addcenter(self.r, 'Confused? Try typing ":help"')
-        self.q.nodelay(0)
-        self.q.getch()
-        self.q.nodelay(1)
-        self.q.clear()
-        addcenter(self.q, "Initializing...")
-        self.q.refresh()
-
         with ScrambleGenerator(self.puzzle, self.random, self.length) as scrambler:
+            addcenter(self.q, 'Term Cube Timer -- Press any key to start')
+            addcenter(self.r, 'Confused? Try typing ":help"')
+            self.q.nodelay(0)
+            self.q.getch()
+            self.q.nodelay(1)
+            self.q.clear()
+            addcenter(self.q, "Initializing...")
+            self.q.refresh()
             while True:
                 #Print statistics
                 self.printstats(self.r)
@@ -501,9 +500,9 @@ Available commands:
                 del self.solves[index - 1]
                 self.solvenumber -= 1
                 addcenter(scr, 'Removed solve number %d: %s' % (index, t))
+                self.recalculate()
                 self.printstats(self.r)
                 self.printtimes(self.e)
-                self.recalculate()
                 scr.getch()
             except Exception as e:
                 addcenter(scr, '%s %s' % (e, index))
