@@ -1,3 +1,15 @@
+'''
+##termusr.py
+This module contains timer functions. By default it generates random state
+3x3x3 scrambles, prints what a cube would look like after applying the 
+scramble, counts down until inspections is stopped, then counts up until
+stopped, and repeats until stopped.
+
+It supports rudimentary exports to files, deleting times, adding penalties,
+and also tagging a solve at the end of solve time so that each time can 
+be sorted by attributes that interest the user.
+'''
+
 from .cube import Cube
 from .scrambler import ScrambleGenerator
 from .simulator import Simulator, addcenter

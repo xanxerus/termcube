@@ -1,3 +1,11 @@
+'''
+##solve.py
+This module has one real function which solves a cube from a given 
+sticker string using muodov's implementation of kociemba's two phase 
+algorithm. Description of the cube string and source for muodov's python
+port of two-phase can be found at <https://github.com/muodov/kociemba>.
+'''
+
 from .turn import Turn
 from .pykociemba import search
 from .. import TurnSequence

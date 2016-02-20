@@ -1,3 +1,19 @@
+'''
+##scramble.py
+This module is adapted from muodov's solve.py. It generates a cube in a
+randomly assembled but solvable state, solves it with Kociemba's
+algorithm, then returns the inverse of the solution.
+
+Description and source for muodov's python port of two-phase can be 
+found at <https://github.com/muodov/kociemba>.
+
+Description of Kociemba's two-phase algorithm can be found at 
+<http://kociemba.org/cube.htm>
+
+If anyone has any suggestions for speeding up the solver I would be
+very happy to know.
+'''
+
 from .pykociemba.coordcube import CoordCube, getPruning
 from .pykociemba.cubiecube import CubieCube
 from .. import TurnSequence

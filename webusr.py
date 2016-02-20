@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
 #Must run this script with -m flag
+'''
+##webusr.py
+This module puts random cubes on a webpage on localhost:8000 using 
+visualcube. <http://cube.crider.co.uk/visualcube.php>
+
+Not very useful. May be expanded later.
+'''
+
 
 from termcube.cube import Cube
 from termcube.turn import TurnSequence

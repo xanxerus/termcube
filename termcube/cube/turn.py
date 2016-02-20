@@ -1,3 +1,13 @@
+'''
+##turn.py
+This module has two classes, Turn and TurnSequence. A Turn represents a 
+single move that can be used to manipulate a cube with any arbitrary 
+side length > 1. A TurnSequence is a list object that specifically holds 
+Turn objects and can produce their own inverses, i.e., a given TurnSequence 
+A can return a TurnSequence B that undoes A. They can also produce
+random turn scrambles.
+'''
+
 from random import choice, randrange
 
 class Turn():

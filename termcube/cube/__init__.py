@@ -1,3 +1,20 @@
+'''
+##cube.py
+This module has two classes: 
+ScrambleGenerator: generates random state
+scrambles in a separate thread and returns them when requested
+
+Cube: simulates a cube of any side length > 1. A Cube can apply an
+arbitrary Turn object to itself (as long as its depth is less than its 
+side length). It implements a __str__() that uses ANSI color codes to 
+represent colors. Orange is represented by purple because there is no 
+orange ANSI color code.
+
+The interact method works repl style. You can input a given sequence of 
+cube notation (WCA or SiGN will both work equally) and it will be 
+applied to the cube and print itself. Try it, it's very fun.
+'''
+
 from . import scramble
 from . import solve
 from .turn import Turn
