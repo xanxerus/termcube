@@ -392,16 +392,16 @@ Available commands:
                 scramble = next(scrambler)
                 self.puzzle.apply(scramble)
 
+                #Print Cube and Scramble
+                self.printpuzzle(self.w)
+                self.w.refresh()
+                addcenter(self.q, scramble)
+
                 #Throw out key presses during scramble wait
                 self.q.nodelay(1)
                 while self.q.getch() >= 0:
                     pass
                 self.q.nodelay(0)
-
-                #Print Cube and Scramble
-                self.printpuzzle(self.w)
-                self.w.refresh()
-                addcenter(self.q, scramble)
 
                 #Command
                 usr = chr(self.q.getch())
