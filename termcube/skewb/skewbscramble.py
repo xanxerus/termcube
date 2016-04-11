@@ -17,10 +17,8 @@ class SkewbSearch():
 		
 	@staticmethod
 	def cycle3(arr, i1, i2, i3):
-		c = arr[i1]
-		arr[i1] = arr[i2]
-		arr[i2] = arr[i3]
-		arr[i3] = c
+		arr[i1], arr[i2], arr[i3] =\
+		arr[i2], arr[i3], arr[i1]
 
 	@staticmethod
 	def getctmv(p, m):

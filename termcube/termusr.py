@@ -416,7 +416,10 @@ Available commands:
                 self.q.nodelay(1)
 
                 #Inspect
-                penalty = self.countdown(self.q, self.inspection)
+                if self.inspection > 0:
+                    penalty = self.countdown(self.q, self.inspection)
+                else:
+                    penalty = 0
 
                 #Solve
                 time = self.countup(self.q)
