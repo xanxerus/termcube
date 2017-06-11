@@ -1,10 +1,106 @@
 #!/usr/bin/env python3
 from .puzzle import Puzzle, PuzzleTurn, interpret_sequence, \
 					invert_sequence, rotate_cw, rotate_ccw, rotate_2
-from random import choice
+from random import choice, randrange
 import curses
 
+class BigCubeTurn(PuzzleTurn):
+	MOVES = {"F", "R", "U", "L", "D", "B", "x", "y", "z", "M", "S", "E"}
+	
+	def __init__(self, move, direction = "", depth = 0):
+		if direction not in ("", "'", "2"):
+			raise ValueError("Invalid direction: %s" % direction)
+		elif depth < 0:
+			raise ValueError("Depth must be nonnegative")
+		
+		#copy constructor
+		elif isinstance(move, BigCubeTurn):
+			self.direction = move.direction
+			self.move = move.move
+			self.depth = move.depth
+
+		#non-string input
+		elif not isinstance(move, str):
+			raise TypeError("%s object is neither a str nor a BigCubeTurn" % type(move))
+
+		#empty string input
+		elif len(move) == 0:
+			raise ValueError("Move cannot be empty string")
+
+		#copy the args
+		elif len(move) == 1 and move in "FRUDLBxyzMSE":
+			self.move, self.direction = move, direction
+			if move in "FRUDLB":
+				self.depth = depth or 1
+			else:
+				self.depth = 0
+
+		#parse the string
+		else:
+			wide = any(s in move for s in "frudlbw")
+			
+			if wide:
+				move = move.replace('w', '')
+				move = move.upper()
+
+			face = list(set(move) & set("FRUDLB" if wide else "FRULDBxyzMSE"))
+			if face:
+				face = face[0]
+			else:
+				raise ValueError("String does not describe a valid BigCubeTurn")
+			suffix = move[move.index(face)+1:]
+			prefix = move[:move.index(face)]
+
+			if prefix and face not in "FRUDLB":
+				raise ValueError("String does not describe a valid BigCubeTurn")
+
+			if suffix == "2'" or suffix == "'2":
+				suffix = '2'
+
+			self.move = face
+			
+			if suffix in ("", "'", "2"):
+				self.direction = suffix
+			else:
+				raise ValueError("String does not describe a valid BigCubeTurn")
+			
+			if prefix:
+				try:
+					self.depth = int(prefix)
+					if self.depth <= 0:
+						raise ValueError("String does not describe a valid BigCubeTurn")
+				except:
+					raise ValueError("String does not describe a valid BigCubeTurn")
+			else:
+				self.depth = 2 if wide else 1 if self.move in "FRUDLB" else 0
+
+	def inverse(self):
+		if self.direction == "":
+			opposite_direction = "'"
+		elif self.direction == "'":
+			opposite_direction = ""
+		else:
+			opposite_direction = "2"
+		
+		return BigCubeTurn(self.move, opposite_direction, self.depth)
+	
+	def __str__(self):
+		"""Return this turn using WCA notation."""
+		ret = ''
+		if self.depth >= 2:
+			ret += str(self.depth)
+		ret += self.move
+		if self.depth >= 2:
+			ret += 'w'
+		ret += self.direction
+
+		return ret
+
+	__repr__ = __str__
+
 class BigCube(Puzzle):
+	TURN_TYPE = BigCubeTurn
+
 	def __init__(self, size=3):
 		self.size = size
 		self.reset()
@@ -106,7 +202,14 @@ class BigCube(Puzzle):
 				self.apply_turn(turn)
 	
 	def scramble(self):
-		return list(BigCubeTurn.random_turn() for _ in range(20))
+		ret = []
+		opposite = {'F':'B', 'B':'F', 'U':'D', 'D':'U', 'L':'R', 'R':'L', '':''}
+		chosen_face = ''
+		for _ in range(20):
+			chosen_face = choice("FRUDLB".replace(chosen_face, '').replace(opposite[chosen_face], ''))
+			ret.append(BigCubeTurn(chosen_face, choice(("", "'", "2")), randrange(1, 1 + self.size//2)))
+
+		return ret
 	
 	def simulatorstr(self):
 		ret = ''
@@ -148,89 +251,3 @@ class BigCube(Puzzle):
 			y += 1
 		
 		scr.move(maxy-1, maxx-1)
-
-class BigCubeTurn(PuzzleTurn):
-	def __init__(self, move, direction = "", depth = 0):
-		if direction not in ("", "'", "2"):
-			raise ValueError("Invalid direction: %s" % direction)
-		if depth < 0:
-			raise ValueError("Depth must be nonnegative")
-		
-		#copy constructor
-		if isinstance(move, BigCubeTurn):
-			self.direction = move.direction
-			self.move = move.move
-			self.depth = move.depth
-
-		#non-string input
-		elif not isinstance(move, str):
-			raise TypeError("%s object is neither a str nor a BigCubeTurn" % type(turn))
-
-		#empty string input
-		elif len(move) == 0:
-			raise ValueError("Move cannot be empty string")
-
-		#copy the args
-		if len(move) == 1 and move in "FRUDLBxyzMSE":
-			self.move, self.direction = move, direction
-			if move in "FRUDLB":
-				self.depth = depth or 1
-			else:
-				self.depth = 0
-
-		#parse the string
-		else:
-			wide = any(s in move for s in "frudlbw")
-			
-			if wide:
-				move = move.replace('w', '')
-				move = move.upper()
-
-			face = list(set(move) & set("FRUDLB" if wide else "FRULDBxyzMSE"))
-			if face:
-				face = face[0]
-			else:
-				raise ValueError("String does not describe a valid BigCubeTurn")
-			suffix = move[move.index(face)+1:]
-			prefix = move[:move.index(face)]
-
-			if prefix and face not in "FRUDLB":
-				raise ValueError("String does not describe a valid BigCubeTurn")
-
-			if suffix == "2'" or suffix == "'2":
-				suffix = '2'
-
-			self.move = face
-			
-			if suffix in ("", "'", "2"):
-				self.direction = suffix
-			else:
-				raise ValueError("String does not describe a valid BigCubeTurn")
-			
-			if prefix:
-				try:
-					self.depth = int(prefix)
-					if self.depth <= 0:
-						raise ValueError("String does not describe a valid BigCubeTurn")
-				except:
-					raise ValueError("String does not describe a valid BigCubeTurn")
-			else:
-				self.depth = 2 if wide else 1 if self.move in "FRUDLB" else 0
-
-	def inverse(self):
-		if self.direction == "":
-			opposite_direction = "'"
-		elif self.direction == "'":
-			opposite_direction = ""
-		else:
-			opposite_direction = "2"
-		
-		return BigCubeTurn(self.move, opposite_direction, self.depth)
-	
-	@staticmethod
-	def random_turn(cls):
-		return BigCubeTurn(choice("FRUDLB"), choice(("", "'", "2")))
-
-	def __str__(self):
-		return '%s :: %s :: %d' % (self.move, self.direction, self.depth)
-	__repr__ = __str__

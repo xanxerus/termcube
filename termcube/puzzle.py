@@ -1,7 +1,23 @@
 #!/usr/bin/env python3
 from abc import ABCMeta, abstractmethod
 
+class PuzzleTurn(metaclass=ABCMeta):
+	@abstractmethod
+	def inverse(self):
+		pass
+	
+	@abstractmethod
+	def __str__(self):
+		pass
+
+	@abstractmethod
+	def __repr__(self):
+		pass
+
 class Puzzle(metaclass=ABCMeta):
+	TURN_TYPE = PuzzleTurn
+	IS_SOLVABLE = False
+
 	@abstractmethod
 	def reset(self):
 		pass
@@ -25,16 +41,6 @@ class Puzzle(metaclass=ABCMeta):
 	def draw(self, scr):
 		pass
 
-class PuzzleTurn(metaclass=ABCMeta):
-	@abstractmethod
-	def inverse(self):
-		pass
-	
-	@staticmethod
-	@abstractmethod
-	def random_turn(cls):
-		pass
-
 def interpret_sequence(iterable, turntype):
 	if not issubclass(turntype, PuzzleTurn):
 		raise TypeError('%s object is not a subclass of Puzzle.Turn' % turntype);
@@ -48,6 +54,9 @@ def interpret_sequence(iterable, turntype):
 
 def invert_sequence(turnsequence):
 	return [t.inverse() for t in reversed(turnsequence)]
+
+def join_sequence(turnsequence, delimiter=' '):
+	return delimiter.join(map(str, turnsequence))
 
 def rotate_cw(face):
 	"""Returns a clockwise rotated version of a given 2D list"""

@@ -1,6 +1,8 @@
-# Term Cube
-Term Cube is a cube timer and simulator that can simulate the Skewb and
-cubic twistypuzzles with arbitrary side lengths > 0. Or at least it was.
+# termcube
+Termcube is a Rubik's cube timer and simulator that can simulate the 
+Skewb and cubic twistypuzzles with arbitrary side lengths > 0. 
+
+Or at least it was.
 
 ##I levelled everything!
 
