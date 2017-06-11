@@ -1,15 +1,10 @@
-#!/usr/bin/env python3
+from distutils.core import setup
 
-import os
-from setuptools import setup, find_packages
-
-setup(
-    name = "termcube",
-    version = '0.1',
-    packages = find_packages(),
-    entry_points = {
-        'console_scripts': [
-            'termcube = termcube.termcube:main',
-        ],
-    },
-)
+setup(name='termcube',
+      version='0.1',
+      description='Terminal Rubik\'s cube simulator and timer',
+      url='https://github.com/xanxerus/termcube',
+      author='Xander Wong',
+      author_email='xanxerus@gmail.com',
+      license='MIT',
+      packages=['termcube'])
