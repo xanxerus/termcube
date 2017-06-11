@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import curses
 
 from .puzzle import interpret_sequence, join_sequence

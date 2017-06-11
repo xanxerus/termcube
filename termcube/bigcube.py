@@ -111,6 +111,9 @@ class BigCube(Puzzle):
 			self.faces[face] = [[face]*self.size for q in range(self.size)]
 
 	def apply_turn(self, turn):
+		if turn.depth > self.size:
+			raise ValueError("Turn is deeper than puzzle side length")
+		
 		for w in range(1 + ("", "2", "'").index(turn.direction)):
 			if turn.move == 'x':
 				self.faces['F'], self.faces['U'], self.faces['B'], self.faces['D'] = \
