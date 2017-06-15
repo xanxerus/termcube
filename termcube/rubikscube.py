@@ -89,14 +89,14 @@ class RubiksCube(Puzzle):
 	IS_SOLVABLE = False
 
 	_MOVE_EDGES = {'U': (3, 2, 1, 0),
-				'D': (8, 9, 10, 11),
-				'R': (1, 5, 9, 4),
-				'L': (7, 11, 6, 3),
-				'F': (0, 4, 8, 7),
-				'B': (2, 6, 10, 5),
-				'M': (0, 8, 10, 2),
-				'E': (4, 5, 6, 7),
-				'S': (3, 1, 9, 11)}
+				   'D': (8, 9, 10, 11),
+				   'R': (1, 5, 9, 4),
+				   'L': (7, 11, 6, 3),
+				   'F': (0, 4, 8, 7),
+				   'B': (2, 6, 10, 5),
+				   'M': (0, 8, 10, 2),
+				   'E': (4, 5, 6, 7),
+				   'S': (3, 1, 9, 11)}
 
 	_MOVE_CORNERS = {'U': (3, 2, 1, 0),
 					 'D': (4, 5, 6, 7),
@@ -104,6 +104,50 @@ class RubiksCube(Puzzle):
 					 'L': (4, 7, 3, 0),
 					 'F': (0, 1, 5, 4),
 					 'B': (2, 3, 7, 6)}
+
+	_CORNER_PLACEMENT = [((2, 3), (3, 3), (3, 2)),
+						 ((2, 5), (3, 6), (3, 5)),
+						 ((0, 5), (11, 5), (3, 8)),
+						 ((0, 3), (3, 0), (11, 3)),
+						 ((6, 3), (5, 2), (5, 3)),
+						 ((6, 5), (5, 5), (5, 6)),
+						 ((8, 5), (5, 8), (9, 5)),
+						 ((8, 3), (9, 3), (5, 0))]
+
+	_EDGE_PLACEMENT = [((2, 4), (3, 4)),
+					   ((1, 5), (3, 7)),
+					   ((0, 4), (11, 4)),
+					   ((1, 3), (3, 1)
+					   ((4, 5), (4, 6)
+					   ((10, 5), (4, 8)),
+					   ((10, 3), (4, 0)),
+					   ((4, 3), (4, 2)),
+					   ((6, 4), (5, 4)),
+					   ((7, 5), (5, 7)),
+					   ((9, 4), (8, 4)),
+					   ((7, 3), (5, 1))]
+
+	_CORNER_COLORS = [('w', 'g', 'o'),
+					 ('w', 'r', 'g'),
+					 ('w', 'b', 'r'),
+					 ('w', 'o', 'b'),
+					 ('y', 'o', 'g'),
+					 ('y', 'g', 'r'),
+					 ('y', 'r', 'b'),
+					 ('y', 'b', 'o')]
+
+	_EDGE_COLORS = [('w', 'g'),
+					('w', 'r'),
+					('w', 'b'),
+					('w', 'o'),
+					('g', 'r'),
+					('b', 'r'),
+					('b', 'o'),
+					('g', 'o'),
+					('y', 'g'),
+					('w', 'r'),
+					('w', 'b'),
+					('w', 'o')]
 
 	def __init__(self):
 		self.reset()
@@ -167,7 +211,30 @@ class RubiksCube(Puzzle):
 		return None
 	
 	def draw(self, scr):
-		pass
+		return None
+
+'''
+		maxy, maxx = scr.getmaxyx()
+		yinit = maxy // 2 - 6 
+		xinit = maxx // 2 - 9
+		scr.clear()
+		
+		if xinit < 0 or yinit < 0:
+			return False
+		
+		for i in xrange(8):
+			
+		
+		for line in self.simulatorstr().split('\n'):
+			x = xinit
+			for c in line:
+				if c != ' ':
+					scr.addstr(y, x, ' ', curses.color_pair(ord(c) - 60))
+				x += 1
+			y += 1
+		
+		scr.move(maxy-1, maxx-1)
+'''
 
 def reassign_cw(arr, indices):
 	assert len(indices) == 4
