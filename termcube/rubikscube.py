@@ -107,6 +107,10 @@ class RubiksCube(Puzzle):
 					 'F': (0, 1, 5, 4),
 					 'B': (2, 3, 7, 6)}
 
+	_MOVE_CENTERS = {'M': (0, 3, 5, 1),
+					 'S': (0, 2, 5, 4),
+					 'E': (4, 3, 2, 1)}
+
 	_CORNER_PLACEMENT = [((2, 3), (3, 3), (3, 2)),
 						 ((2, 5), (3, 6), (3, 5)),
 						 ((0, 5), (11, 5), (3, 8)),
@@ -128,6 +132,8 @@ class RubiksCube(Puzzle):
 					   ((7, 5), (5, 7)),
 					   ((8, 4), (9, 4)),
 					   ((7, 3), (5, 1))]
+
+	_CENTER_PLACEMENT = [(1, 4), (10, 4), (4, 7), (4, 4), (4, 1), (7, 4)]
 
 	_CORNER_COLORS = [('w', 'g', 'o'),
 					 ('w', 'r', 'g'),
@@ -151,7 +157,7 @@ class RubiksCube(Puzzle):
 					('y', 'b'),
 					('y', 'o')]
 
-	_DECODE_COLOR = {'w':'U', 'g':'F', 'r':'R', 'o':'L', 'b':'B', 'y':'D'}
+	_DECODE_COLOR = {'w':'F', 'g':'D', 'r':'R', 'o':'L', 'b':'U', 'y':'B'}
 
 	def __init__(self):
 		self.reset()
@@ -159,10 +165,38 @@ class RubiksCube(Puzzle):
 	def reset(self):
 		self.ep = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 		self.cp = [0, 1, 2, 3, 4, 5, 6, 7]
+		self.mp = ['w', 'b', 'r', 'g', 'o', 'y']
 		self.eo = [0]*12
 		self.co = [0]*8
+		
 	
 	def apply_turn(self, turn):
+		#rotations
+		if turn.move == 'X':
+			if turn.direction == "":
+				self.apply("R M' L'")
+			elif turn.direction == "'":
+				self.apply("R' M L")
+			else:
+				self.apply("R2 M2 L2")
+			return
+		elif turn.move == 'Y':
+			if turn.direction == "":
+				self.apply("U E' D'")
+			elif turn.direction == "'":
+				self.apply("U' E D")
+			else:
+				self.apply("U2 E2 D2")
+			return
+		elif turn.move == 'Z':
+			if turn.direction == "":
+				self.apply("F S B'")
+			elif turn.direction == "'":
+				self.apply("F' S' B")
+			else:
+				self.apply("F2 S2 B2")
+			return
+		
 		#edge orientation
 		if turn.direction != "2" and turn.move in "FBMSE":
 			for edge in RubiksCube._MOVE_EDGES[turn.move]:
@@ -180,21 +214,16 @@ class RubiksCube(Puzzle):
 				pos = not pos
 		
 		#permutations
-		if turn.direction == "":
-			reassign_cw(self.ep, RubiksCube._MOVE_EDGES[turn.move])
-			reassign_cw(self.cp, RubiksCube._MOVE_CORNERS[turn.move])
-			reassign_cw(self.eo, RubiksCube._MOVE_EDGES[turn.move])
-			reassign_cw(self.co, RubiksCube._MOVE_CORNERS[turn.move])
-		elif turn.direction == "'":
-			reassign_ccw(self.ep, RubiksCube._MOVE_EDGES[turn.move])
-			reassign_ccw(self.cp, RubiksCube._MOVE_CORNERS[turn.move])
-			reassign_ccw(self.eo, RubiksCube._MOVE_EDGES[turn.move])
-			reassign_ccw(self.co, RubiksCube._MOVE_CORNERS[turn.move])
-		elif turn.direction == "2":
-			reassign_2(self.ep, RubiksCube._MOVE_EDGES[turn.move])
-			reassign_2(self.cp, RubiksCube._MOVE_CORNERS[turn.move])
-			reassign_2(self.eo, RubiksCube._MOVE_EDGES[turn.move])
-			reassign_2(self.co, RubiksCube._MOVE_CORNERS[turn.move])
+		fun = reassign_cw if turn.direction == "" else reassign_ccw if turn.direction == "'" else reassign_2
+		fun(self.ep, RubiksCube._MOVE_EDGES[turn.move])
+		fun(self.eo, RubiksCube._MOVE_EDGES[turn.move])
+		
+		if turn.move in 'UDRLFB':
+			fun(self.cp, RubiksCube._MOVE_CORNERS[turn.move])
+			fun(self.co, RubiksCube._MOVE_CORNERS[turn.move])
+		
+		if turn.move in 'MSE':
+			fun(self.mp, RubiksCube._MOVE_CENTERS[turn.move])
 
 		#wide turns
 		if turn.iswide:
@@ -229,6 +258,11 @@ class RubiksCube(Puzzle):
 		#will not fit.
 		if xinit < 0 or yinit < 0:
 			return False
+		
+		#centers
+		for i in range(6):
+			r, c = RubiksCube._CENTER_PLACEMENT[i]
+			scr.addstr(r+yinit, c+xinit, ' ', curses.color_pair(ord(RubiksCube._DECODE_COLOR[self.mp[i]]) - 60))
 		
 		#corners
 		for i in range(8):
