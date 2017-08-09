@@ -41,6 +41,8 @@ class RubiksCubeTurn(PuzzleTurn):
 				self.direction = direction
 			
 			self.iswide = move[0] != self.move
+			if self.move in 'XYZ':
+				self.move = self.move.lower()
 
 		#bad input
 		else:
@@ -58,25 +60,38 @@ class RubiksCubeTurn(PuzzleTurn):
 		
 		return ret
 	
-	def wide_slice(self):
+	def decompose(self):
 		if not self.iswide:
-			return None
+			return self
 		
-		if self.move in 'FB':
+		if self.move in 'FBz':
 			retmove = 'S'
-		elif self.move in 'RL':
+		elif self.move in 'RLx':
 			retmove = 'M'
-		else: # self.move in 'UD':
+		else: # self.move in 'UDy':
 			retmove = 'E'
 		
 		if self.direction == 2:
 			retdir = 2
-		elif self.move in "FLU":
+		elif self.move in "BRUxy":
 			retdir = "" if self.direction == "'" else "'"
 		else:
 			retdir = self.direction
 		
-		return RubiksCubeTurn(retmove, retdir)
+		if self.move == "x":
+			return RubiksCubeTurn(retmove, retdir),\
+				   RubiksCubeTurn('R', self.direction),\
+				   RubiksCubeTurn('L', '' if self.direction == "'" else "'" if self.direction == '' else self.direction)
+		elif self.move == "y":
+			return RubiksCubeTurn(retmove, retdir),\
+				   RubiksCubeTurn('U', self.direction),\
+				   RubiksCubeTurn('D', '' if self.direction == "'" else "'" if self.direction == '' else self.direction)
+		elif self.move == "z":
+			return RubiksCubeTurn(retmove, retdir),\
+				   RubiksCubeTurn('F', self.direction),\
+				   RubiksCubeTurn('B', '' if self.direction == "'" else "'" if self.direction == '' else self.direction)
+		else:
+			return RubiksCubeTurn(self.move, self.direction), RubiksCubeTurn(retmove, retdir)
 
 	def __str__(self):
 		if self.iswide:
@@ -90,6 +105,13 @@ class RubiksCube(Puzzle):
 	TURN_TYPE = RubiksCubeTurn
 	IS_SOLVABLE = False
 
+	_MOVE_CORNERS = {'U': (3, 2, 1, 0),
+					 'D': (4, 5, 6, 7),
+					 'R': (1, 2, 6, 5),
+					 'L': (4, 7, 3, 0),
+					 'F': (0, 1, 5, 4),
+					 'B': (2, 3, 7, 6)}
+
 	_MOVE_EDGES = {'U': (3, 2, 1, 0),
 				   'D': (8, 9, 10, 11),
 				   'R': (1, 5, 9, 4),
@@ -100,12 +122,9 @@ class RubiksCube(Puzzle):
 				   'E': (4, 5, 6, 7),
 				   'S': (3, 1, 9, 11)}
 
-	_MOVE_CORNERS = {'U': (3, 2, 1, 0),
-					 'D': (4, 5, 6, 7),
-					 'R': (1, 2, 6, 5),
-					 'L': (4, 7, 3, 0),
-					 'F': (0, 1, 5, 4),
-					 'B': (2, 3, 7, 6)}
+	_MOVE_CENTERS = {'M': (0, 3, 5, 1),
+					 'S': (0, 2, 5, 4),
+					 'E': (1, 4, 3, 2)}
 
 	_CORNER_PLACEMENT = [((2, 3), (3, 3), (3, 2)),
 						 ((2, 5), (3, 6), (3, 5)),
@@ -129,29 +148,31 @@ class RubiksCube(Puzzle):
 					   ((8, 4), (9, 4)),
 					   ((7, 3), (5, 1))]
 
-	_CORNER_COLORS = [('w', 'g', 'o'),
-					 ('w', 'r', 'g'),
-					 ('w', 'b', 'r'),
-					 ('w', 'o', 'b'),
-					 ('y', 'o', 'g'),
-					 ('y', 'g', 'r'),
-					 ('y', 'r', 'b'),
-					 ('y', 'b', 'o')]
+	_CENTER_PLACEMENT = [(1, 4), (10, 4), (4, 7), (4, 4), (4, 1), (7, 4)]
 
-	_EDGE_COLORS = [('w', 'g'),
-					('w', 'r'),
-					('w', 'b'),
-					('w', 'o'),
-					('g', 'r'),
-					('b', 'r'),
-					('b', 'o'),
-					('g', 'o'),
-					('y', 'g'),
-					('y', 'r'),
-					('y', 'b'),
-					('y', 'o')]
+	_CORNER_COLORS = [(0, 3, 4),
+					 (0, 2, 3),
+					 (0, 1, 2),
+					 (0, 4, 1),
+					 (5, 4, 3),
+					 (5, 3, 2),
+					 (5, 2, 1),
+					 (5, 1, 4)]
 
-	_DECODE_COLOR = {'w':'U', 'g':'F', 'r':'R', 'o':'L', 'b':'B', 'y':'D'}
+	_EDGE_COLORS = [(0, 3),
+					(0, 2),
+					(0, 1),
+					(0, 4),
+					(3, 2),
+					(1, 2),
+					(1, 4),
+					(3, 4),
+					(5, 3),
+					(5, 2),
+					(5, 1),
+					(5, 4)]
+
+	_DECODE_COLORS = ['W', 'B', 'R', 'G', 'O', 'Y']
 
 	def __init__(self):
 		self.reset()
@@ -161,8 +182,15 @@ class RubiksCube(Puzzle):
 		self.cp = [0, 1, 2, 3, 4, 5, 6, 7]
 		self.eo = [0]*12
 		self.co = [0]*8
+		self.mp = [0, 1, 2, 3, 4, 5]
 	
 	def apply_turn(self, turn):
+		#wide turns
+		if turn.iswide:
+			for t in turn.decompose():
+				self.apply_turn(t)
+			return
+		
 		#edge orientation
 		if turn.direction != "2" and turn.move in "FBMSE":
 			for edge in RubiksCube._MOVE_EDGES[turn.move]:
@@ -181,24 +209,24 @@ class RubiksCube(Puzzle):
 		
 		#permutations
 		if turn.direction == "":
-			reassign_cw(self.ep, RubiksCube._MOVE_EDGES[turn.move])
-			reassign_cw(self.cp, RubiksCube._MOVE_CORNERS[turn.move])
-			reassign_cw(self.eo, RubiksCube._MOVE_EDGES[turn.move])
-			reassign_cw(self.co, RubiksCube._MOVE_CORNERS[turn.move])
+			reassign_cw(self.ep, RubiksCube._MOVE_EDGES.get(turn.move, None))
+			reassign_cw(self.cp, RubiksCube._MOVE_CORNERS.get(turn.move, None))
+			reassign_cw(self.eo, RubiksCube._MOVE_EDGES.get(turn.move, None))
+			reassign_cw(self.co, RubiksCube._MOVE_CORNERS.get(turn.move, None))
+			reassign_cw(self.mp, RubiksCube._MOVE_CENTERS.get(turn.move, None))
 		elif turn.direction == "'":
-			reassign_ccw(self.ep, RubiksCube._MOVE_EDGES[turn.move])
-			reassign_ccw(self.cp, RubiksCube._MOVE_CORNERS[turn.move])
-			reassign_ccw(self.eo, RubiksCube._MOVE_EDGES[turn.move])
-			reassign_ccw(self.co, RubiksCube._MOVE_CORNERS[turn.move])
+			reassign_ccw(self.ep, RubiksCube._MOVE_EDGES.get(turn.move, None))
+			reassign_ccw(self.cp, RubiksCube._MOVE_CORNERS.get(turn.move, None))
+			reassign_ccw(self.eo, RubiksCube._MOVE_EDGES.get(turn.move, None))
+			reassign_ccw(self.co, RubiksCube._MOVE_CORNERS.get(turn.move, None))
+			reassign_ccw(self.mp, RubiksCube._MOVE_CENTERS.get(turn.move, None))
 		elif turn.direction == "2":
-			reassign_2(self.ep, RubiksCube._MOVE_EDGES[turn.move])
-			reassign_2(self.cp, RubiksCube._MOVE_CORNERS[turn.move])
-			reassign_2(self.eo, RubiksCube._MOVE_EDGES[turn.move])
-			reassign_2(self.co, RubiksCube._MOVE_CORNERS[turn.move])
+			reassign_2(self.ep, RubiksCube._MOVE_EDGES.get(turn.move, None))
+			reassign_2(self.cp, RubiksCube._MOVE_CORNERS.get(turn.move, None))
+			reassign_2(self.eo, RubiksCube._MOVE_EDGES.get(turn.move, None))
+			reassign_2(self.co, RubiksCube._MOVE_CORNERS.get(turn.move, None))
+			reassign_2(self.mp, RubiksCube._MOVE_CENTERS.get(turn.move, None))
 
-		#wide turns
-		if turn.iswide:
-			self.apply_turn(turn.wide_slice())
 
 	def apply(self, turns):
 		if isinstance(turns, RubiksCubeTurn):
@@ -234,15 +262,21 @@ class RubiksCube(Puzzle):
 		for i in range(8):
 			for j in range(3):
 				r, c = RubiksCube._CORNER_PLACEMENT[i][j]
-				color = RubiksCube._DECODE_COLOR[RubiksCube._CORNER_COLORS[self.cp[i]][(j + self.co[i])%3]]
+				color = RubiksCube._DECODE_COLORS[RubiksCube._CORNER_COLORS[self.cp[i]][(j + self.co[i])%3]]
 				scr.addstr(r+yinit, c+xinit, ' ', curses.color_pair(ord(color) - 60))
 		
 		#edges
 		for i in range(12):
 			for j in range(2):
 				r, c = RubiksCube._EDGE_PLACEMENT[i][j]
-				color = RubiksCube._DECODE_COLOR[RubiksCube._EDGE_COLORS[self.ep[i]][(j + self.eo[i])%2]]
+				color = RubiksCube._DECODE_COLORS[RubiksCube._EDGE_COLORS[self.ep[i]][(j + self.eo[i])%2]]
 				scr.addstr(r+yinit, c+xinit, ' ', curses.color_pair(ord(color) - 60))
+		
+		#centers
+		for i in range(6):
+			r, c = RubiksCube._CENTER_PLACEMENT[i]
+			color = RubiksCube._DECODE_COLORS[self.mp[i]]
+			scr.addstr(r+yinit, c+xinit, ' ', curses.color_pair(ord(color) - 60))
 		
 		scr.move(maxy-1, maxx-1)
 
@@ -252,16 +286,16 @@ class RubiksCube(Puzzle):
 	__repr__ = __str__
 
 def reassign_cw(arr, indices):
-	assert len(indices) == 4
-	arr[indices[0]], arr[indices[1]], arr[indices[2]], arr[indices[3]] = \
-		arr[indices[3]], arr[indices[0]], arr[indices[1]], arr[indices[2]]
+	if indices and len(indices) == 4:
+		arr[indices[0]], arr[indices[1]], arr[indices[2]], arr[indices[3]] = \
+			arr[indices[3]], arr[indices[0]], arr[indices[1]], arr[indices[2]]
 
 def reassign_ccw(arr, indices):
-	assert len(indices) == 4
-	arr[indices[0]], arr[indices[1]], arr[indices[2]], arr[indices[3]] = \
-		arr[indices[1]], arr[indices[2]], arr[indices[3]], arr[indices[0]]
+	if indices and len(indices) == 4:
+		arr[indices[0]], arr[indices[1]], arr[indices[2]], arr[indices[3]] = \
+			arr[indices[1]], arr[indices[2]], arr[indices[3]], arr[indices[0]]
 
 def reassign_2(arr, indices):
-	assert len(indices) == 4
-	arr[indices[0]], arr[indices[1]], arr[indices[2]], arr[indices[3]] = \
-		arr[indices[2]], arr[indices[3]], arr[indices[0]], arr[indices[1]]
+	if indices and len(indices) == 4:
+		arr[indices[0]], arr[indices[1]], arr[indices[2]], arr[indices[3]] = \
+			arr[indices[2]], arr[indices[3]], arr[indices[0]], arr[indices[1]]

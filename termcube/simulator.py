@@ -77,6 +77,8 @@ Available commands:
 			return -1
 		elif command == ':help':
 			Simulator.cornerandwait(scr, Simulator.help_text)
+		elif command == ':debug':
+			Simulator.cornerandwait(scr, ''.join(self.puzzle.mp))
 		else:
 			try:
 				self.puzzle.apply(interpret_sequence(command[1:], self.puzzle.TURN_TYPE))
@@ -101,12 +103,12 @@ Available commands:
 		if not curses.has_colors():
 			raise NoCursesException(self.puzzle)
 
-		curses.init_pair(ord('F') - 60, curses.COLOR_WHITE, curses.COLOR_WHITE)
+		curses.init_pair(ord('W') - 60, curses.COLOR_WHITE, curses.COLOR_WHITE)
 		curses.init_pair(ord('R') - 60, curses.COLOR_WHITE, curses.COLOR_RED)
-		curses.init_pair(ord('U') - 60, curses.COLOR_WHITE, curses.COLOR_BLUE)
-		curses.init_pair(ord('L') - 60, curses.COLOR_WHITE, curses.COLOR_MAGENTA)
-		curses.init_pair(ord('D') - 60, curses.COLOR_WHITE, curses.COLOR_GREEN)
-		curses.init_pair(ord('B') - 60, curses.COLOR_WHITE, curses.COLOR_YELLOW)
+		curses.init_pair(ord('B') - 60, curses.COLOR_WHITE, curses.COLOR_BLUE)
+		curses.init_pair(ord('O') - 60, curses.COLOR_WHITE, curses.COLOR_MAGENTA)
+		curses.init_pair(ord('G') - 60, curses.COLOR_WHITE, curses.COLOR_GREEN)
+		curses.init_pair(ord('Y') - 60, curses.COLOR_WHITE, curses.COLOR_YELLOW)
 		scr.leaveok(0)
 		curses.noecho()
 
